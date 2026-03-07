@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://sarengmedequip.up.railway.app/api', // Default Laravel Artisan serve port
+    baseURL: 'https://sarengmedequip.up.railway.app/api', // Default Laravel Artisan serve port
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
