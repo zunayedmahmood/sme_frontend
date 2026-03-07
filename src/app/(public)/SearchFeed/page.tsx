@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProductFeed } from '@/lib/api/api_public';
 import { useCart } from '@/context/CartContext';
@@ -18,7 +18,7 @@ interface Product {
     image_src: string[];
 }
 
-export default function SearchFeedPage() {
+function SearchFeedPage() {
     const searchParams = useSearchParams();
     const query = searchParams.get('q') || '';
 
@@ -186,5 +186,13 @@ export default function SearchFeedPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function SearchFeedPageWrapper() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>}>
+            <SearchFeedPage />
+        </Suspense>
     );
 }

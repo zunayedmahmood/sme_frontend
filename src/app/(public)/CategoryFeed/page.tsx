@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getProductFeed, getCategoryInventory } from '@/lib/api/api_public';
 import { useCart } from '@/context/CartContext';
@@ -25,7 +25,7 @@ interface Category {
     image_url: string | null;
 }
 
-export default function CategoryFeedPage() {
+function CategoryFeedContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const categoryId = searchParams.get('category_id');
@@ -264,5 +264,13 @@ export default function CategoryFeedPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function CategoryFeedPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>}>
+            <CategoryFeedContent />
+        </Suspense>
     );
 }
