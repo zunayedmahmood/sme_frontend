@@ -232,10 +232,6 @@ export default function ProductsPage() {
 
     const handleCreateProduct = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (createForm.images.length === 0) {
-            setImageError(true);
-            return;
-        }
         setImageError(false);
         setActionLoading(true);
         try {

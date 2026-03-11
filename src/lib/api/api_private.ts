@@ -47,7 +47,8 @@ export const saveCategoryImage = async (formData: FormData) => {
 };
 
 export const updateCategoryImage = async (formData: FormData) => {
-    const response = await api.post('/category/image/update', formData, {
+    // Backend route is PATCH /category/image/update
+    const response = await api.patch('/category/image/update', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -173,10 +174,7 @@ export const confirmOrderPayment = async (orderId: string) => {
     return response.data;
 };
 
-export const getTransactionByOrderPk = async (orderDbId: number | string) => {
-    const response = await api.get(`/order/transaction/${orderDbId}`);
-    return response.data;
-};
+// getTransactionByOrderPk removed – /order/transaction/{id} does not exist in the backend.
 export const createOrder = async (data: any) => {
     const response = await api.post('/order/create', data);
     return response.data;

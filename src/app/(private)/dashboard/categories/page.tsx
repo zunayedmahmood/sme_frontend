@@ -112,11 +112,12 @@ export default function CategoriesPage() {
                 formData.append('image_url', categoryImage);
 
                 if (selectedCategory.image) {
-                    // Delete the old image first, then save fresh —
-                    // avoids relying on stale frontend state for the exists() check
-                    await deleteCategoryImage(selectedCategory.id);
+                    // Category already has an image → use PATCH update (upload-first, safe swap)
+                    await updateCategoryImage(formData);
+                } else {
+                    // No existing image → create new via POST
+                    await saveCategoryImage(formData);
                 }
-                await saveCategoryImage(formData);
             }
 
             setIsEditModalOpen(false);
