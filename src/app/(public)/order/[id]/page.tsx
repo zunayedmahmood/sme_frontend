@@ -255,12 +255,23 @@ export default function OrderDetailsPage() {
                                     </span>
                                 </div>
 
-                                {order.stripe_id_record && (
-                                    <div className="flex flex-col gap-2 text-slate-400 border-b border-white/5 pb-4">
-                                        <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                                            <CreditCard size={14} /> Stripe Reference
+                                {order.payment_method === 'Online' && order.stripe_id_record && (
+                                    <div className="flex flex-col gap-3 text-slate-400 border-b border-white/5 pb-6">
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 flex items-center gap-2">
+                                            <CreditCard size={14} /> Stripe Registry
                                         </span>
-                                        <span className="text-[10px] font-medium text-blue-400 opacity-60 italic break-all">{order.stripe_id_record.stripe_checkout_session_id}</span>
+                                        <div className="space-y-2">
+                                            <div>
+                                                <p className="text-[8px] font-bold uppercase text-slate-500 tracking-widest leading-none mb-1">Session</p>
+                                                <p className="text-[10px] font-mono text-blue-400/80 break-all">{order.stripe_id_record.stripe_checkout_session_id}</p>
+                                            </div>
+                                            {order.stripe_id_record.stripe_payment_intent_id && (
+                                                <div>
+                                                    <p className="text-[8px] font-bold uppercase text-slate-500 tracking-widest leading-none mb-1">Intent</p>
+                                                    <p className="text-[10px] font-mono text-blue-400/80 break-all">{order.stripe_id_record.stripe_payment_intent_id}</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 

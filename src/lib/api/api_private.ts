@@ -189,3 +189,12 @@ export const deleteOrder = async (orderId: string) => {
     const response = await api.delete(`/order/${orderId}`);
     return response.data;
 };
+
+export const updateStripeIds = async (data: { 
+    order_id: string; 
+    stripe_checkout_session_id: string; 
+    stripe_payment_intent_id?: string 
+}) => {
+    const response = await api.patch('/order/stripe-id', data);
+    return response.data;
+};

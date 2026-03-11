@@ -163,14 +163,16 @@ export default function OrderListPage() {
     const [actionLoading, setActionLoading] = useState(false);
 
     // Form Data for Create/Edit
-    const [formData, setFormData] = useState<Partial<Order>>({
+    const [formData, setFormData] = useState<Partial<Order> & { stripe_checkout_session_id?: string; stripe_payment_intent_id?: string }>({
         order_status: 'Pending',
         payment_method: 'COD',
         payment_status: 'Unpaid',
         ordered_products: [],
         customer_details: { name: '', email: '', phone: '' },
         address: { details: '', selection: { division: '', district: '' } },
-        delivery_charge: '0'
+        delivery_charge: '0',
+        stripe_checkout_session_id: '',
+        stripe_payment_intent_id: ''
     });
 
     // Edit Sate
@@ -295,9 +297,6 @@ export default function OrderListPage() {
                 ...formData,
                 total_price: orderTotals.total,
                 delivery_charge: parseFloat(formData.delivery_charge || '0'),
-                stripeId: formData.payment_method === 'Online' ? {
-                    stripe_checkout_session_id: 'MANUAL_' + Date.now(),
-                } : null
             };
             const response = await createOrder(payload);
             if (response.success) {
@@ -311,7 +310,9 @@ export default function OrderListPage() {
                     ordered_products: [],
                     customer_details: { name: '', email: '', phone: '' },
                     address: { details: '', selection: { division: '', district: '' } },
-                    delivery_charge: '0'
+                    delivery_charge: '0',
+                    stripe_checkout_session_id: '',
+                    stripe_payment_intent_id: ''
                 });
             }
         } catch (err) {
@@ -362,7 +363,9 @@ export default function OrderListPage() {
         setExpandedOrderId(order.order_id);
         setFormData({
             ...order,
-            ordered_products: [...order.ordered_products]
+            ordered_products: [...order.ordered_products],
+            stripe_checkout_session_id: order.stripe_id_record?.stripe_checkout_session_id || '',
+            stripe_payment_intent_id: order.stripe_id_record?.stripe_payment_intent_id || ''
         });
         const division = divisions.find(d => d.name === order.address.selection.division);
         if (division) fetchDistricts(division.id);
@@ -550,19 +553,41 @@ export default function OrderListPage() {
                                                     </div>
 
                                                     {/* Online Payment Details (Stripe) */}
-                                                    {!isEditing && order.payment_method === 'Online' && order.stripe_id_record && (
+                                                    {order.payment_method === 'Online' && (
                                                         <div className="mt-6 p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-3">
-                                                            <h4 className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Stripe Registry IDs</h4>
-                                                            <div className="space-y-2">
-                                                                <div className="flex justify-between items-center">
-                                                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Session</span>
-                                                                    <code className="text-[10px] text-indigo-600 truncate max-w-[180px] bg-white px-2 py-0.5 rounded border border-indigo-50">{order.stripe_id_record.stripe_checkout_session_id}</code>
+                                                            <h4 className="flex items-center gap-2 text-[10px] font-bold text-indigo-400 uppercase tracking-widest px-1">
+                                                                <Activity size={12} className="text-indigo-600" />
+                                                                Stripe Registry IDs
+                                                            </h4>
+                                                            {isEditing ? (
+                                                                <div className="space-y-3 pt-2">
+                                                                    <Input 
+                                                                        label="Checkout Session ID" 
+                                                                        placeholder="cs_test_..." 
+                                                                        value={formData.stripe_checkout_session_id} 
+                                                                        onChange={(e: any) => setFormData(prev => ({ ...prev, stripe_checkout_session_id: e.target.value }))} 
+                                                                    />
+                                                                    <Input 
+                                                                        label="Payment Intent ID" 
+                                                                        placeholder="pi_..." 
+                                                                        value={formData.stripe_payment_intent_id} 
+                                                                        onChange={(e: any) => setFormData(prev => ({ ...prev, stripe_payment_intent_id: e.target.value }))} 
+                                                                    />
                                                                 </div>
-                                                                <div className="flex justify-between items-center">
-                                                                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">PaymentIntent</span>
-                                                                    <code className="text-[10px] text-indigo-600 truncate max-w-[180px] bg-white px-2 py-0.5 rounded border border-indigo-50">{order.stripe_id_record.stripe_payment_intent_id}</code>
-                                                                </div>
-                                                            </div>
+                                                            ) : (
+                                                                order.stripe_id_record && (
+                                                                    <div className="space-y-2">
+                                                                        <div className="flex justify-between items-center">
+                                                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Session</span>
+                                                                            <code className="text-[10px] text-indigo-600 truncate max-w-[180px] bg-white px-2 py-0.5 rounded border border-indigo-50">{order.stripe_id_record.stripe_checkout_session_id}</code>
+                                                                        </div>
+                                                                        <div className="flex justify-between items-center">
+                                                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">PaymentIntent</span>
+                                                                            <code className="text-[10px] text-indigo-600 truncate max-w-[180px] bg-white px-2 py-0.5 rounded border border-indigo-50">{order.stripe_id_record.stripe_payment_intent_id}</code>
+                                                                        </div>
+                                                                    </div>
+                                                                )
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
@@ -930,6 +955,31 @@ export default function OrderListPage() {
                                             <option value="COD">CASH ON DELIVERY</option>
                                             <option value="Online">ONLINE TRANSFER (STRIPE)</option>
                                         </Select>
+
+                                        {formData.payment_method === 'Online' && (
+                                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-bold text-blue-400 uppercase tracking-widest ml-1">Stripe Session ID</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="cs_test_..."
+                                                        className="w-full h-11 bg-slate-800 border-none rounded-xl px-4 text-[10px] text-white outline-none focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+                                                        value={formData.stripe_checkout_session_id}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, stripe_checkout_session_id: e.target.value }))}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-bold text-blue-400 uppercase tracking-widest ml-1">Payment Intent ID</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="pi_..."
+                                                        className="w-full h-11 bg-slate-800 border-none rounded-xl px-4 text-[10px] text-white outline-none focus:ring-1 focus:ring-blue-500 transition-all font-mono"
+                                                        value={formData.stripe_payment_intent_id}
+                                                        onChange={(e) => setFormData(prev => ({ ...prev, stripe_payment_intent_id: e.target.value }))}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                         <Select
                                             className="bg-slate-800 border-none text-[10px] h-12"
                                             label="Initial Status"
