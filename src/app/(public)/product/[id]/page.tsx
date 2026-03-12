@@ -181,7 +181,7 @@ export default function ProductDetailPage() {
                                 disabled={localQty <= 1}
                                 className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
                             >
-                                <Minus size={16} sm:size={18} />
+                                <Minus size={16} />
                             </button>
                             <span className="text-xl sm:text-2xl font-bold text-slate-900">{localQty}</span>
                             <button
@@ -189,7 +189,7 @@ export default function ProductDetailPage() {
                                 disabled={localQty >= maxCanAdd}
                                 className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-blue-600 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
                             >
-                                <Plus size={16} sm:size={18} />
+                                <Plus size={16} />
                             </button>
                         </div>
 
