@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { getProductFeed, getCategoryInventory } from '@/lib/api/api_public';
 import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
-import { Search, Filter, ChevronDown, ShoppingBag, Plus, Check, Loader2, ArrowRight } from 'lucide-react';
+import { Search, Filter, ChevronDown, ShoppingBag, Plus, Check, Loader2, ArrowRight, ChevronRight } from 'lucide-react';
 
 const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800';
 
@@ -109,31 +109,35 @@ export default function ProductFeedPage() {
                     <aside className="w-full lg:w-64 flex-shrink-0">
                         <div className="sticky top-24 space-y-8">
                             {/* Search */}
-                            <div>
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Search</h3>
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">Search Catalog</h3>
                                 <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <input
                                         type="text"
-                                        placeholder="Search products..."
+                                        placeholder="Search Products..."
                                         value={searchQuery}
                                         onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all outline-none"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:bg-white outline-none transition-all"
                                     />
                                 </div>
                             </div>
 
                             {/* Categories */}
-                            <div>
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Categories</h3>
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">Categories</h3>
                                 <div className="space-y-2">
                                     <button
                                         onClick={() => { setSelectedCategories([]); setCurrentPage(1); }}
-                                        className={`w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all ${selectedCategories.length === 0 ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20' : 'text-slate-600 hover:bg-slate-100'}`}
+                                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm transition-all ${selectedCategories.length === 0
+                                            ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20'
+                                            : 'text-slate-600 hover:bg-slate-50'
+                                            }`}
                                     >
-                                        All Products
+                                        All Systems
+                                        {selectedCategories.length === 0 && <ChevronRight size={14} />}
                                     </button>
-                                    {categories.map(cat => (
+                                    {categories.map((cat) => (
                                         <button
                                             key={cat.category_id}
                                             onClick={() => {
@@ -144,24 +148,27 @@ export default function ProductFeedPage() {
                                                 );
                                                 setCurrentPage(1);
                                             }}
-                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm transition-all ${selectedCategories.includes(cat.category_id) ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20' : 'text-slate-600 hover:bg-slate-100'}`}
+                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm transition-all ${selectedCategories.includes(cat.category_id)
+                                                ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20'
+                                                : 'text-slate-600 hover:bg-slate-50'
+                                                }`}
                                         >
-                                            <span className="truncate pr-2">{cat.category_name}</span>
-                                            <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${selectedCategories.includes(cat.category_id) ? 'bg-white/20' : 'bg-slate-200 text-slate-500'}`}>{cat.total_inventory}</span>
+                                            <span className="truncate mr-2">{cat.category_name}</span>
+                                            {selectedCategories.includes(cat.category_id) && <ChevronRight size={14} />}
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Sort By */}
-                            <div>
-                                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">Sort By</h3>
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">Ordering</h3>
                                 <select
                                     value={sortBy}
                                     onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:border-blue-500 outline-none cursor-pointer"
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:bg-white outline-none cursor-pointer"
                                 >
-                                    <option value="newest">Newest Arrival</option>
+                                    <option value="newest">Recent Arrivals</option>
                                     <option value="most_sold">Best Sellers</option>
                                     <option value="price_low_high">Price: Low to High</option>
                                     <option value="price_high_low">Price: High to Low</option>
@@ -178,7 +185,7 @@ export default function ProductFeedPage() {
                                 <p className="text-slate-500 font-medium">Loading catalog...</p>
                             </div>
                         ) : products.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
                                 {products.map(product => {
                                     const inCartQty = cart[product.id] || 0;
                                     const isJustAdded = addedIds.includes(product.id);

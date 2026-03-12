@@ -145,17 +145,17 @@ function CategoryFeedContent() {
         <div className="min-h-screen bg-slate-50">
             {/* Category Header */}
             <div className="bg-white border-b border-slate-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                    <Link href="/ProductFeed" className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 text-sm mb-6 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                    <Link href="/ProductFeed" className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 text-xs sm:text-sm mb-6 transition-colors font-bold uppercase tracking-widest">
                         <ArrowLeft className="w-4 h-4" />
                         Back to Catalog
                     </Link>
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
-                            <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-2">
+                            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-2">
                                 {currentCategory?.category_name || 'Medical Category'}
                             </h1>
-                            <p className="text-slate-500 font-light">
+                            <p className="text-slate-500 font-light text-sm sm:text-base">
                                 Found {filteredProducts.length} high-performance medical products in this classification.
                             </p>
                         </div>

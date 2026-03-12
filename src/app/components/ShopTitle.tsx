@@ -26,10 +26,10 @@ const ShopTitle: React.FC<ShopTitleProps> = ({ variant }) => {
                     <img
                         src="/ShopLogo.png"
                         alt="SME logo"
-                        className="h-9 w-auto object-contain"
+                        className="h-8 sm:h-9 w-auto object-contain"
                     />
 
-                    <span className="flex items-baseline text-2xl font-bold tracking-tight select-none">
+                    <span className="flex items-baseline text-xl sm:text-2xl font-bold tracking-tight select-none">
                         <span className="text-blue-600 transition-colors duration-300">
                             Sareng
                         </span>
@@ -44,7 +44,7 @@ const ShopTitle: React.FC<ShopTitleProps> = ({ variant }) => {
             </Link>
 
             {/* Subtitle / Tagline — indented to align under the text, past the logo */}
-            <p className="text-[9px] uppercase tracking-[0.2em] font-medium text-slate-400 mt-0.5 ml-[46px]">
+            <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-medium text-slate-400 mt-0.5 ml-[40px] sm:ml-[46px]">
                 Medical Equipments Distributor
             </p>
         </div>

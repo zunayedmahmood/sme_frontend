@@ -102,43 +102,43 @@ export default function ProductDetailPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-20 animate-in fade-in duration-700">
-            <Link href="/ProductFeed" className="inline-flex items-center space-x-2 text-slate-400 hover:text-blue-600 font-bold uppercase text-[10px] tracking-widest transition-all mb-10 group">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-20 animate-in fade-in duration-700">
+            <Link href="/ProductFeed" className="inline-flex items-center space-x-2 text-slate-400 hover:text-blue-600 font-bold uppercase text-[10px] tracking-widest transition-all mb-8 sm:mb-10 group">
                 <div className="group-hover:-translate-x-1 transition-transform"><ChevronLeft className="w-4 h-4" /></div>
                 <span>Technical Catalog</span>
             </Link>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-20 items-start">
                 {/* Image Gallery */}
-                <div className="space-y-8 sticky top-32">
-                    <div className="aspect-[4/5] bg-slate-50 rounded-[48px] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/50 group relative">
+                <div className="space-y-6 sm:space-y-8 lg:sticky lg:top-32">
+                    <div className="aspect-[4/5] bg-slate-50 rounded-3xl sm:rounded-[48px] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/50 group relative">
                         <img
                             src={product.image_src.length > 0 ? product.image_src[activeImage] : PLACEHOLDER_IMG}
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.05]"
                         />
-                        <div className="absolute top-10 left-10 flex flex-col gap-3">
+                        <div className="absolute top-4 left-4 sm:top-10 sm:left-10 flex flex-col gap-2 sm:gap-3">
                             {product.sold_count > 0 && (
-                                <div className="bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full border border-white shadow-lg flex items-center space-x-2 w-fit">
-                                    <Activity className="w-3.5 h-3.5 text-blue-600" />
-                                    <span className="text-[10px] font-bold uppercase text-slate-900 tracking-wider">Sold Count: {product.sold_count} Sold</span>
+                                <div className="bg-white/90 backdrop-blur-md px-3 sm:px-5 py-2 sm:py-2.5 rounded-full border border-white shadow-lg flex items-center space-x-2 w-fit">
+                                    <Activity className="w-3 sm:h-3.5 sm:w-3.5 h-3 text-blue-600" />
+                                    <span className="text-[8px] sm:text-[10px] font-bold uppercase text-slate-900 tracking-wider">{product.sold_count} Sold</span>
                                 </div>
                             )}
-                            <div className="bg-blue-600 text-white px-5 py-2.5 rounded-full shadow-lg flex items-center space-x-2 w-fit">
-                                <ShieldCheck className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Clinical Grade</span>
+                            <div className="bg-blue-600 text-white px-3 sm:px-5 py-2 sm:py-2.5 rounded-full shadow-lg flex items-center space-x-2 w-fit">
+                                <ShieldCheck className="w-3 sm:h-3.5 sm:w-3.5 h-3" />
+                                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider">Clinical Grade</span>
                             </div>
                         </div>
                     </div>
                     {product.image_src.length > 1 && (
-                        <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-hide px-2">
+                        <div className="flex gap-3 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide px-2">
                             {product.image_src.map((img, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveImage(i)}
-                                    className={`relative flex-shrink-0 w-24 aspect-square rounded-[24px] overflow-hidden border-2 transition-all p-1 ${activeImage === i ? 'border-blue-600 bg-blue-50/50 scale-110 shadow-xl shadow-blue-600/10' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                    className={`relative flex-shrink-0 w-16 sm:w-24 aspect-square rounded-xl sm:rounded-[24px] overflow-hidden border-2 transition-all p-1 ${activeImage === i ? 'border-blue-600 bg-blue-50/50 scale-105 sm:scale-110 shadow-xl shadow-blue-600/10' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                 >
-                                    <img src={img} alt="" className="w-full h-full object-cover rounded-[18px]" />
+                                    <img src={img} alt="" className="w-full h-full object-cover rounded-lg sm:rounded-[18px]" />
                                 </button>
                             ))}
                         </div>
@@ -146,77 +146,77 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Info Panel */}
-                <div className="flex flex-col py-4">
-                    <div className="flex flex-wrap gap-2 mb-8 justify-center lg:justify-start">
+                <div className="flex flex-col py-0 lg:py-4">
+                    <div className="flex flex-wrap gap-2 mb-6 sm:mb-8 justify-center lg:justify-start">
                         {product.categories.map(cat => (
-                            <span key={cat.id} className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600 bg-blue-50 px-4 py-2 rounded-xl">
+                            <span key={cat.id} className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600 bg-blue-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl">
                                 {cat.name}
                             </span>
                         ))}
                     </div>
 
-                    <h1 className="text-4xl sm:text-7xl font-bold text-slate-900 leading-[1.1] mb-6 text-center lg:text-left tracking-tight">
+                    <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.1] mb-6 text-center lg:text-left tracking-tight">
                         {product.name}
                     </h1>
 
-                    <div className="flex items-baseline gap-4 mb-12 justify-center lg:justify-start">
-                        <span className="text-4xl font-black text-slate-900 tracking-tight">${product.selling_price}</span>
+                    <div className="flex items-baseline gap-4 mb-8 sm:mb-12 justify-center lg:justify-start">
+                        <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">${product.selling_price}</span>
                     </div>
 
-                    <div className="space-y-6 mb-12 bg-slate-50 p-10 rounded-[40px] border border-white shadow-inner">
-                        <h4 className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                            <Activity size={14} className="text-blue-400" />
+                    <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-12 bg-slate-50 p-6 sm:p-10 rounded-[32px] sm:rounded-[40px] border border-white shadow-inner">
+                        <h4 className="flex items-center gap-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 justify-center lg:justify-start">
+                            <Activity size={12} className="text-blue-400 sm:w-3.5 sm:h-3.5" />
                             Description
                         </h4>
-                        <p className="text-slate-600 leading-relaxed font-light text-xl text-center lg:text-left">
+                        <p className="text-slate-600 leading-relaxed font-light text-base sm:text-xl text-center lg:text-left">
                             {product.description || "This clinical instrument is a key component of our professional inventory, meticulously verified for medical performance and reliability"}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] lg:grid-cols-[160px_1fr] xl:grid-cols-[200px_1fr] gap-4 sm:gap-5">
                         {/* Qty Stepper */}
-                        <div className="bg-slate-50 border border-slate-100 rounded-[32px] p-2 flex items-center justify-between shadow-sm">
+                        <div className="bg-slate-50 border border-slate-100 rounded-2xl sm:rounded-[32px] p-1.5 sm:p-2 flex items-center justify-between shadow-sm">
                             <button
                                 onClick={() => setLocalQty(q => Math.max(1, q - 1))}
                                 disabled={localQty <= 1}
-                                className="w-14 h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-xl transition-all rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
+                                className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
                             >
-                                <Minus size={18} />
+                                <Minus size={16} sm:size={18} />
                             </button>
-                            <span className="text-2xl font-bold text-slate-900">{localQty}</span>
+                            <span className="text-xl sm:text-2xl font-bold text-slate-900">{localQty}</span>
                             <button
                                 onClick={() => setLocalQty(q => Math.min(maxCanAdd, q + 1))}
                                 disabled={localQty >= maxCanAdd}
-                                className="w-14 h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-blue-600 hover:shadow-xl transition-all rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
+                                className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-blue-600 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
                             >
-                                <Plus size={18} />
+                                <Plus size={16} sm:size={18} />
                             </button>
                         </div>
 
                         <button
                             onClick={() => handleAddToCart(product.id, product.available_stock)}
                             disabled={maxCanAdd <= 0}
-                            className={`flex flex-1 items-center justify-center space-x-3 py-6 rounded-[32px] font-bold text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xl ${isAdded ? 'bg-green-600 shadow-green-600/20 text-white animate-in zoom-in-95' : 'bg-blue-600 shadow-blue-600/20 text-white hover:bg-blue-700 hover:-translate-y-1'}`}
+                            className={`flex items-center justify-center space-x-3 py-4 sm:py-6 rounded-2xl sm:rounded-[32px] font-bold text-xs sm:text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xl ${isAdded ? 'bg-green-600 shadow-green-600/20 text-white animate-in zoom-in-95' : 'bg-blue-600 shadow-blue-600/20 text-white hover:bg-blue-700 hover:-translate-y-1'}`}
                         >
-                            {isAdded ? <CheckCircle2 /> : <ShoppingCart />}
+                            {isAdded ? <CheckCircle2 size={18} /> : <ShoppingCart size={18} />}
                             <span>{isAdded ? 'Logistics Updated' : maxCanAdd <= 0 ? 'Quota Full' : 'Add to Cart'}</span>
                         </button>
                     </div>
 
-                    <div className="mt-12 pt-10 border-t border-slate-100 flex flex-wrap items-center justify-center lg:justify-start gap-12">
+                    <div className="mt-8 sm:mt-12 pt-8 sm:pt-10 border-t border-slate-100 flex flex-wrap items-center justify-center lg:justify-start gap-8 sm:gap-12 text-center lg:text-left">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2 justify-center lg:justify-start">
                                 <Package size={12} className="text-blue-400" />
                                 Inventory
                             </span>
-                            <span className="text-lg font-bold text-slate-900">{product.available_stock <= 0 ? 'Out of Stock' : product.available_stock < 10 ? `Only ${product.available_stock} left` : 'Available'}</span>
+                            <span className="text-base sm:text-lg font-bold text-slate-900">{product.available_stock <= 0 ? 'Out of Stock' : product.available_stock < 10 ? `Only ${product.available_stock} left` : 'Available'}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2 justify-center lg:justify-start">
                                 <ShieldCheck size={12} className="text-blue-400" />
                                 Quality
                             </span>
-                            <span className="text-lg font-bold text-slate-900">Clinical Grade</span>
+                            <span className="text-base sm:text-lg font-bold text-slate-900">Clinical Grade</span>
                         </div>
                     </div>
                 </div>

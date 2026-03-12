@@ -144,48 +144,49 @@ export default function OrderDetailsPage() {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-10 lg:pt-16">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 items-start">
+            <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-16">
+                <div className="flex flex-col lg:grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12 items-start">
 
                     {/* ═══════════════ MAIN CONTENT ═══════════════ */}
-                    <div className="space-y-8">
+                    <div className="space-y-6 sm:space-y-8 w-full order-2 lg:order-1">
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
                             <div>
-                                <h1 className="text-4xl font-black text-slate-900 tracking-tight">Order Details</h1>
-                                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2">Authenticated on {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}</p>
+                                <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Order Details</h1>
+                                <p className="text-slate-400 font-bold text-[9px] sm:text-[10px] uppercase tracking-[0.2em] mt-2">Authenticated on {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}</p>
                             </div>
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-wrap gap-2 sm:gap-3">
                                 <StatusBadge status={order.order_status} />
                                 <StatusBadge status={order.payment_status} />
                             </div>
                         </div>
 
                         {/* ── 1. Logistics Summary ── */}
-                        <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 sm:p-10">
-                            <div className="flex items-center gap-4 mb-10">
-                                <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-100">
-                                    <Package size={24} />
+                        <div className="bg-white rounded-3xl sm:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 sm:p-10">
+                            <div className="flex items-center gap-4 mb-8 sm:mb-10">
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-100">
+                                    <Package size={20} className="sm:hidden" />
+                                    <Package size={24} className="hidden sm:block" />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Supplies Log</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Inventory Items</p>
+                                    <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Supplies Log</h3>
+                                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Items</p>
                                 </div>
-                                <div className="flex-1 h-px bg-slate-100 ml-4" />
+                                <div className="flex-1 h-px bg-slate-100 ml-2 sm:ml-4" />
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3 sm:space-y-4">
                                 {order.ordered_products?.map((item: any, idx: number) => (
-                                    <div key={idx} className="flex items-center gap-6 p-4 bg-slate-50/50 rounded-[28px] border border-transparent hover:border-blue-100 transition-all group">
-                                        <div className="flex-1">
-                                            <p className="text-base font-bold text-slate-900 tracking-tight">{item.name}</p>
-                                            <div className="flex items-center gap-3 mt-1.5">
-                                                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">Qty: {item.qty}</span>
-                                                <span className="text-xs font-bold text-slate-400">${item.price} / unit</span>
+                                    <div key={idx} className="flex items-center gap-4 sm:gap-6 p-4 bg-slate-50/50 rounded-2xl sm:rounded-[28px] border border-transparent hover:border-blue-100 transition-all group">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">{item.name}</p>
+                                            <div className="flex items-center gap-2 sm:gap-3 mt-1.5">
+                                                <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 bg-slate-100 px-2 sm:px-3 py-1 rounded-full uppercase tracking-widest">Qty: {item.qty}</span>
+                                                <span className="text-[10px] sm:text-xs font-bold text-slate-400">${item.price} / unit</span>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-lg font-black text-slate-900 tracking-tighter">${(item.price * item.qty).toLocaleString()}</p>
+                                            <p className="text-base sm:text-lg font-black text-slate-900 tracking-tighter">${(item.price * item.qty).toLocaleString()}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -193,25 +194,25 @@ export default function OrderDetailsPage() {
                         </div>
 
                         {/* ── 2. Logistics Coordinates & Customer ── */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                            <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 sm:p-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 text-left">
+                            <div className="bg-white rounded-3xl sm:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 sm:p-10">
                                 <MapPin size={24} className="text-blue-500 mb-6" />
-                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Delivery Coordinates</h4>
+                                <h4 className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Delivery Address</h4>
                                 <div className="space-y-4">
                                     <div>
                                         <p className="text-sm font-bold text-slate-900 leading-tight mb-1">{order.address?.details}</p>
-                                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">{order.address?.district}, {order.address?.division}</p>
+                                        <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase tracking-widest">{order.address?.district}, {order.address?.division}</p>
                                     </div>
                                     <div className="flex items-center gap-3 pt-4 border-t border-slate-50 text-slate-400">
                                         <Truck size={14} />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Route</span>
+                                        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">Delivery Route</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 sm:p-10">
+                            <div className="bg-white rounded-3xl sm:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 sm:p-10">
                                 <CreditCard size={24} className="text-emerald-500 mb-6" />
-                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Customer Details</h4>
+                                <h4 className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Customer Details</h4>
                                 <div className="space-y-3">
                                     <p className="text-sm font-bold text-slate-900 leading-none">{order.customer_details?.name}</p>
                                     <p className="text-xs font-semibold text-slate-500">{order.customer_details?.phone}</p>
@@ -223,62 +224,62 @@ export default function OrderDetailsPage() {
                     </div>
 
                     {/* ═══════════════ SIDEBAR REQUISITION DATA ═══════════════ */}
-                    <div className="sticky top-32 space-y-6">
-                        <div className="bg-slate-900 rounded-[48px] p-8 sm:p-10 text-white shadow-2xl shadow-blue-900/10 overflow-hidden relative">
+                    <div className="lg:sticky lg:top-32 space-y-6 w-full order-1 lg:order-2">
+                        <div className="bg-slate-900 rounded-[32px] sm:rounded-[48px] p-6 sm:p-10 text-white shadow-2xl shadow-blue-900/10 overflow-hidden relative">
                             {/* Background visual */}
                             <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-blue-600 rounded-full blur-[100px] opacity-10 -mr-20 -mt-20" />
                             <div className="absolute bottom-0 left-0 w-[150px] h-[150px] bg-emerald-600 rounded-full blur-[80px] opacity-5 -ml-20 -mb-20" />
 
-                            <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400 mb-8">Order Document</h2>
+                            <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400 mb-6 sm:mb-8">Order Document</h2>
 
-                            <div className="space-y-4 mb-10">
+                            <div className="space-y-4 mb-8 sm:mb-10">
                                 <div className="flex justify-between items-center text-slate-400 border-b border-white/5 pb-4">
-                                    <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                                        <Receipt size={14} /> Order ID
+                                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                        <Receipt size={14} /> ID
                                     </span>
-                                    <span className="text-sm font-black text-white">{order.order_id}</span>
+                                    <span className="text-xs sm:text-sm font-black text-white">{order.order_id}</span>
                                 </div>
 
                                 <div className="flex justify-between items-center text-slate-400 border-b border-white/5 pb-4">
-                                    <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                                        <Calendar size={14} /> Recorded Date
+                                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                        <Calendar size={14} /> Date
                                     </span>
-                                    <span className="text-sm font-black text-white">{new Date(order.created_at).toLocaleDateString()}</span>
+                                    <span className="text-xs sm:text-sm font-black text-white">{new Date(order.created_at).toLocaleDateString()}</span>
                                 </div>
 
                                 <div className="flex justify-between items-center text-slate-400 border-b border-white/5 pb-4">
-                                    <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                                         <CreditCard size={14} /> Payment Method
                                     </span>
-                                    <span className="text-sm font-black text-white uppercase tracking-tighter">
+                                    <span className="text-[10px] sm:text-sm font-black text-white uppercase tracking-tighter">
                                         {order.payment_method === 'COD' ? 'Cash Settlement' : 'Online Stripe'}
                                     </span>
                                 </div>
 
                                 {order.payment_method === 'Online' && order.stripe_id_record && (
                                     <div className="flex flex-col gap-3 text-slate-400 border-b border-white/5 pb-6">
-                                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 flex items-center gap-2">
+                                        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.2em] text-blue-400 flex items-center gap-2">
                                             <CreditCard size={14} /> Stripe Registry
                                         </span>
                                         <div className="space-y-2">
                                             <div>
                                                 <p className="text-[8px] font-bold uppercase text-slate-500 tracking-widest leading-none mb-1">Session</p>
-                                                <p className="text-[10px] font-mono text-blue-400/80 break-all">{order.stripe_id_record.stripe_checkout_session_id}</p>
+                                                <p className="text-[9px] sm:text-[10px] font-mono text-blue-400/80 break-all">{order.stripe_id_record.stripe_checkout_session_id}</p>
                                             </div>
                                             {order.stripe_id_record.stripe_payment_intent_id && (
                                                 <div>
                                                     <p className="text-[8px] font-bold uppercase text-slate-500 tracking-widest leading-none mb-1">Intent</p>
-                                                    <p className="text-[10px] font-mono text-blue-400/80 break-all">{order.stripe_id_record.stripe_payment_intent_id}</p>
+                                                    <p className="text-[9px] sm:text-[10px] font-mono text-blue-400/80 break-all">{order.stripe_id_record.stripe_payment_intent_id}</p>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="pt-8 flex justify-between items-end">
+                                <div className="pt-6 sm:pt-8 flex justify-between items-end">
                                     <div>
-                                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 block mb-2">Total Price</span>
-                                        <span className="text-4xl font-black text-white tracking-tighter">
+                                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-500 block mb-2">Total Price</span>
+                                        <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter">
                                             ${Number(order.total_price).toLocaleString()}
                                         </span>
                                     </div>
@@ -290,7 +291,7 @@ export default function OrderDetailsPage() {
                                     <button
                                         onClick={handleManualPayment}
                                         disabled={actionLoading}
-                                        className="w-full py-5 bg-blue-600 text-white font-bold text-xs uppercase tracking-[0.2em] rounded-[24px] hover:bg-blue-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 disabled:opacity-50"
+                                        className="w-full py-4 sm:py-5 bg-blue-600 text-white font-bold text-[10px] sm:text-xs uppercase tracking-[0.2em] rounded-2xl sm:rounded-[24px] hover:bg-blue-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 disabled:opacity-50"
                                     >
                                         {actionLoading ? <Loader2 className="animate-spin" size={16} /> : <CreditCard size={16} />}
                                         Pay Now
@@ -299,7 +300,7 @@ export default function OrderDetailsPage() {
 
                                 <button
                                     onClick={() => window.print()}
-                                    className="w-full py-5 bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-[0.2em] rounded-[24px] hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-3 backdrop-blur-md"
+                                    className="w-full py-4 sm:py-5 bg-white/5 border border-white/10 text-white font-bold text-[10px] sm:text-xs uppercase tracking-[0.2em] rounded-2xl sm:rounded-[24px] hover:bg-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-3 backdrop-blur-md"
                                 >
                                     <Receipt size={16} /> Print Records
                                 </button>

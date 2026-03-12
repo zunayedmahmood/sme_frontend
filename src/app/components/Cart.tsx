@@ -67,8 +67,8 @@ const CartItemRow = ({ productId, quantity }: { productId: number, quantity: num
                 </div>
             )}
 
-            <div className="flex gap-5 p-5 bg-white border border-slate-100 rounded-[32px] hover:border-blue-200 hover:shadow-xl hover:shadow-blue-600/5 transition-all duration-300 group">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-slate-50 relative">
+            <div className="flex gap-4 sm:gap-5 p-4 sm:p-5 bg-white border border-slate-100 rounded-2xl sm:rounded-[32px] hover:border-blue-200 hover:shadow-xl hover:shadow-blue-600/5 transition-all duration-300 group">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden flex-shrink-0 bg-slate-50 relative">
                     <img
                         src={imageUrl}
                         alt={detail.name}
@@ -76,39 +76,39 @@ const CartItemRow = ({ productId, quantity }: { productId: number, quantity: num
                     />
                 </div>
 
-                <div className="flex-1 flex flex-col justify-between py-1">
+                <div className="flex-1 flex flex-col justify-between py-0.5 sm:py-1">
                     <div>
                         <div className="flex justify-between items-start gap-2">
-                            <h4 className="text-sm font-bold text-slate-900 line-clamp-1 tracking-tight">{detail.name}</h4>
+                            <h4 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1 tracking-tight">{detail.name}</h4>
                             <button
                                 onClick={() => setConfirmDelete(true)}
                                 className="text-slate-300 hover:text-red-500 transition-colors -mt-1 -mr-1 p-1"
                             >
-                                <X size={16} />
+                                <X size={14} className="sm:w-4 sm:h-4" />
                             </button>
                         </div>
-                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Unit Price: ${detail.selling_price}</p>
+                        <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">Unit Price: ${detail.selling_price}</p>
                     </div>
 
-                    <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center bg-slate-50 border border-slate-100 rounded-xl p-1 gap-1">
+                    <div className="flex items-center justify-between mt-3 sm:mt-4">
+                        <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg sm:rounded-xl p-0.5 sm:p-1 gap-1">
                             <button
                                 onClick={() => updateQuantity(productId, quantity - 1, detail.available_stock)}
-                                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white rounded-lg transition-all active:scale-90"
+                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white rounded-md sm:rounded-lg transition-all active:scale-90"
                             >
-                                <Minus size={14} />
+                                <Minus size={12} className="sm:w-3.5 sm:h-3.5" />
                             </button>
-                            <span className="w-8 text-center text-sm font-bold text-slate-900">{quantity}</span>
+                            <span className="w-6 sm:w-8 text-center text-xs sm:text-sm font-bold text-slate-900">{quantity}</span>
                             <button
                                 onClick={() => updateQuantity(productId, quantity + 1, detail.available_stock)}
-                                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all active:scale-90"
+                                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-white rounded-md sm:rounded-lg transition-all active:scale-90"
                             >
-                                <Plus size={14} />
+                                <Plus size={12} className="sm:w-3.5 sm:h-3.5" />
                             </button>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Subtotal</p>
-                            <p className="text-sm font-black text-slate-900 tracking-tight">${detail.selling_price * quantity}</p>
+                            <p className="text-[9px] sm:text-xs font-bold text-slate-400 uppercase tracking-tighter">Subtotal</p>
+                            <p className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">${detail.selling_price * quantity}</p>
                         </div>
                     </div>
                 </div>
@@ -159,15 +159,15 @@ export default function Cart() {
                 className={`fixed top-0 right-0 z-[160] h-full w-full sm:w-[480px] bg-slate-50/95 backdrop-blur-xl shadow-[-40px_0_120px_-20px_rgba(0,0,0,0.1)] transition-transform duration-500 ease-out transform flex flex-col ${isCartOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 {/* Header */}
-                <div className="p-8 pb-4 flex items-center justify-between">
+                <div className="p-6 sm:p-8 pb-3 sm:pb-4 flex items-center justify-between">
                     <div>
-                        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Order Cart</h2>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Order Cart</h2>
                     </div>
                     <button
                         onClick={() => setIsCartOpen(false)}
-                        className="w-12 h-12 bg-white border border-slate-200 text-slate-400 hover:text-slate-900 rounded-2xl flex items-center justify-center transition-all shadow-sm hover:shadow-md active:scale-95"
+                        className="w-10 h-10 sm:w-12 sm:h-12 bg-white border border-slate-200 text-slate-400 hover:text-slate-900 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all shadow-sm hover:shadow-md active:scale-95"
                     >
-                        <X size={20} />
+                        <X size={18} className="sm:w-5 sm:h-5" />
                     </button>
                 </div>
 
@@ -181,7 +181,7 @@ export default function Cart() {
                 )}
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto px-8 py-6 space-y-4 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-4 sm:py-6 space-y-3 sm:space-y-4 scrollbar-hide">
                     {cartEntries.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center px-10">
                             <div className="w-24 h-24 bg-white border border-slate-100 rounded-[40px] flex items-center justify-center mb-8 shadow-sm">
@@ -210,17 +210,17 @@ export default function Cart() {
                 </div>
 
                 {/* Requisition Summary Footer */}
-                <div className="p-10 bg-white border-t border-slate-100 rounded-t-[48px] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.03)] space-y-8">
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between text-slate-500 font-medium">
-                            <span className="text-sm">Total items</span>
-                            <span className="text-sm font-bold text-slate-900">{cartEntries.length} Items</span>
+                <div className="p-6 sm:p-10 bg-white border-t border-slate-100 rounded-t-[32px] sm:rounded-t-[48px] shadow-[0_-20px_50px_-15px_rgba(0,0,0,0.03)] space-y-6 sm:space-y-8">
+                    <div className="space-y-3 sm:space-y-4">
+                        <div className="flex items-center justify-between text-slate-500 font-medium text-xs sm:text-sm">
+                            <span>Total items</span>
+                            <span className="font-bold text-slate-900">{cartEntries.length} Items</span>
                         </div>
                         <div className="flex items-center justify-between pt-2 border-t border-slate-50">
-                            <span className="text-lg font-bold text-slate-900">Total Valuation</span>
+                            <span className="text-base sm:text-lg font-bold text-slate-900">Total Valuation</span>
                             <div className="text-right">
-                                <span className="text-3xl font-black text-blue-600">${subtotal}</span>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Excluding Logistics</p>
+                                <span className="text-2xl sm:text-3xl font-black text-blue-600">${subtotal}</span>
+                                <p className="text-[8px] sm:text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5 sm:mt-1">Excluding Logistics</p>
                             </div>
                         </div>
                     </div>
@@ -229,14 +229,14 @@ export default function Cart() {
                         <button
                             onClick={handleCheckout}
                             disabled={cartEntries.length === 0 || loading}
-                            className="w-full py-5 bg-slate-900 text-white font-bold text-sm rounded-[24px] shadow-2xl shadow-slate-900/10 hover:bg-blue-600 hover:shadow-blue-600/20 active:scale-[0.98] disabled:opacity-30 transition-all flex items-center justify-center gap-3 group"
+                            className="w-full py-4 sm:py-5 bg-slate-900 text-white font-bold text-xs sm:text-sm rounded-2xl sm:rounded-[24px] shadow-2xl shadow-slate-900/10 hover:bg-blue-600 hover:shadow-blue-600/20 active:scale-[0.98] disabled:opacity-30 transition-all flex items-center justify-center gap-2 sm:gap-3 group"
                         >
                             {loading ? (
-                                <Loader2 className="animate-spin" size={20} />
+                                <Loader2 className="animate-spin" size={18} />
                             ) : (
                                 <>
                                     <span>Proceed to Final Checkout</span>
-                                    <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform sm:w-[18px] sm:h-[18px]" />
                                 </>
                             )}
                         </button>

@@ -190,10 +190,10 @@ export default function HomePage() {
                                     { label: 'Tech Support', value: '24/7', sub: 'Expert Help' },
                                     { label: 'Orders', value: stats.successful_orders, sub: 'Successful Orders' }
                                 ].map((stat, i) => (
-                                    <div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-[40px] hover:bg-white/10 transition-colors group">
-                                        <h4 className="text-3xl font-bold text-blue-500 mb-2 group-hover:scale-110 transition-transform inline-block">{stat.value}</h4>
-                                        <p className="text-xs font-bold text-white uppercase tracking-widest mb-1">{stat.label}</p>
-                                        <p className="text-[10px] text-slate-500 font-medium uppercase tracking-tighter">{stat.sub}</p>
+                                    <div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 p-6 sm:p-8 rounded-[40px] hover:bg-white/10 transition-colors group">
+                                        <h4 className="text-2xl sm:text-3xl font-bold text-blue-500 mb-2 group-hover:scale-110 transition-transform inline-block">{stat.value}</h4>
+                                        <p className="text-[10px] sm:text-xs font-bold text-white uppercase tracking-widest mb-1">{stat.label}</p>
+                                        <p className="text-[9px] sm:text-[10px] text-slate-500 font-medium uppercase tracking-tighter">{stat.sub}</p>
                                     </div>
                                 ))}
                             </div>
@@ -203,9 +203,9 @@ export default function HomePage() {
             </section>
 
             {/* Trust Badges / Stats Section */}
-            <section className="bg-slate-50 py-20 border-y border-slate-100">
+            <section className="bg-slate-50 py-16 sm:py-20 border-y border-slate-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
                         <div className="flex flex-col items-center text-center">
                             <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
                                 <Shield className="w-8 h-8" />
@@ -239,21 +239,21 @@ export default function HomePage() {
             </section>
 
             {/* Contact Us Section */}
-            <section id="contact" className="py-24 bg-white relative overflow-hidden">
+            <section id="contact" className="py-16 sm:py-24 bg-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-blue-50 rounded-full blur-3xl opacity-50" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-20 items-center">
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                         <div>
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
                                 <MessageCircle size={14} />
                                 Clinical Communications
                             </div>
-                            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-6">
+                            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-6">
                                 Connect with our <br />
                                 <span className="text-blue-600">Specialist Support</span> Team
                             </h2>
-                            <p className="text-slate-500 text-lg font-light leading-relaxed mb-10 max-w-lg">
+                            <p className="text-slate-500 text-base sm:text-lg font-light leading-relaxed mb-10 max-w-lg">
                                 Have technical inquiries or require personalized consultation? Our dedicated professionals are ready to assist with your requirements.
                             </p>
 
@@ -279,7 +279,7 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        <div className="bg-slate-50 p-10 rounded-[40px] border border-white shadow-2xl relative overflow-hidden group">
+                        <div className="bg-slate-50 p-6 sm:p-10 rounded-[40px] border border-white shadow-2xl relative overflow-hidden group">
                             <div className="absolute top-0 left-0 w-2 h-full bg-blue-600" />
 
                             {submitted ? (
@@ -298,7 +298,7 @@ export default function HomePage() {
                                 </div>
                             ) : (
                                 <form onSubmit={handleContactSubmit} className="space-y-6">
-                                    <div className="grid sm:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                                             <div className="relative">

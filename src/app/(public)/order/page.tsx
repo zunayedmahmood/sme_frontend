@@ -244,20 +244,20 @@ export default function OrderPage() {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10 lg:py-16">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 items-start">
+            <div className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-16">
+                <div className="flex flex-col lg:grid lg:grid-cols-[1fr_400px] gap-8 lg:gap-12 items-start">
 
                     {/* ═══════════════ REQUISITION FORM ═══════════════ */}
-                    <div className="space-y-8">
-                        <h1 className="text-4xl font-bold text-slate-900 tracking-tight lg:hidden mb-10">Checkout</h1>
+                    <div className="space-y-6 sm:space-y-8 w-full order-2 lg:order-1">
+                        <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight lg:hidden mb-6">Checkout</h1>
 
                         {/* ── 1. Logistics Summary ── */}
-                        <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
-                            <div className="p-8 sm:p-10">
+                        <div className="bg-white rounded-3xl sm:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+                            <div className="p-6 sm:p-10">
                                 <SectionHeader icon={Package} label="Supplies" step={1} />
 
                                 {loadingCart ? (
-                                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                    <div className="flex flex-col items-center justify-center py-10 sm:py-20 gap-4">
                                         <Loader2 className="text-blue-600 animate-spin" size={32} />
                                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Validating Cart...</p>
                                     </div>
@@ -273,21 +273,21 @@ export default function OrderPage() {
                                             </div>
                                         )}
                                         {cartItems.map(item => (
-                                            <div key={item.product_id} className="flex items-center gap-6 p-4 bg-slate-50/50 border border-transparent hover:border-blue-100 hover:bg-white rounded-[28px] transition-all group">
-                                                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white border border-slate-100 flex-shrink-0">
+                                            <div key={item.product_id} className="flex items-center gap-4 sm:gap-6 p-4 bg-slate-50/50 border border-transparent hover:border-blue-100 hover:bg-white rounded-[28px] transition-all group">
+                                                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-white border border-slate-100 flex-shrink-0">
                                                     <img src={item.image_src?.[0] || PLACEHOLDER_IMG} alt={item.product_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-base font-bold text-slate-900 truncate tracking-tight">{item.product_name}</p>
-                                                    <div className="flex items-center gap-3 mt-1.5">
-                                                        <span className="text-[11px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest">
+                                                    <p className="text-sm sm:text-base font-bold text-slate-900 truncate tracking-tight">{item.product_name}</p>
+                                                    <div className="flex items-center gap-2 sm:gap-3 mt-1.5">
+                                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 bg-slate-100 px-2 sm:px-3 py-1 rounded-full uppercase tracking-widest">
                                                             Qty: {item.qty}
                                                         </span>
-                                                        <span className="text-xs font-bold text-blue-600">${item.price} / unit</span>
+                                                        <span className="text-[10px] sm:text-xs font-bold text-blue-600">${item.price} / unit</span>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-lg font-bold text-slate-900 tracking-tighter">${(parseFloat(item.price) * item.qty).toLocaleString()}</p>
+                                                    <p className="text-base sm:text-lg font-bold text-slate-900 tracking-tighter">${(parseFloat(item.price) * item.qty).toLocaleString()}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -297,9 +297,9 @@ export default function OrderPage() {
                         </div>
 
                         {/* ── 2. Personnel Details ── */}
-                        <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 sm:p-10">
+                        <div className="bg-white rounded-3xl sm:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 sm:p-10">
                             <SectionHeader icon={User} label="Personnel Details" step={2} />
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div className="sm:col-span-2">
                                     <FieldLabel>Full Legal Name</FieldLabel>
                                     <input className={inputClass} placeholder="Enter full name" value={name} onChange={e => setName(e.target.value)} />
@@ -319,7 +319,7 @@ export default function OrderPage() {
                         </div>
 
                         {/* ── 3. Logistics Coordinates ── */}
-                        <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 sm:p-10">
+                        <div className="bg-white rounded-3xl sm:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 sm:p-10">
                             <SectionHeader icon={MapPin} label="Logistics Coordinates" step={3} />
                             <div className="space-y-6">
                                 <div>
@@ -332,7 +332,7 @@ export default function OrderPage() {
                                     />
                                     <FieldError msg={errors.addressDetails} />
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div>
                                         <FieldLabel>Division</FieldLabel>
                                         <div className="relative">
@@ -379,7 +379,7 @@ export default function OrderPage() {
                         </div>
 
                         {/* ── 4. Financial Protocol ── */}
-                        <div className="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 sm:p-10">
+                        <div className="bg-white rounded-3xl sm:rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/40 p-6 sm:p-10">
                             <SectionHeader icon={CreditCard} label="Financial Protocol" step={4} />
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {(['COD', 'Online'] as const).map(method => {
@@ -389,23 +389,23 @@ export default function OrderPage() {
                                             key={method}
                                             type="button"
                                             onClick={() => setPaymentMethod(method)}
-                                            className={`group relative flex items-center gap-4 px-6 py-6 rounded-3xl border-2 transition-all duration-300 ${selected
+                                            className={`group relative flex items-center gap-4 px-6 py-5 sm:py-6 rounded-3xl border-2 transition-all duration-300 ${selected
                                                 ? 'border-blue-600 bg-blue-50/30'
                                                 : 'border-slate-100 bg-slate-50 hover:border-slate-200 hover:bg-white'
                                                 }`}
                                         >
-                                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selected ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>
-                                                {selected && <Check size={14} className="text-white" />}
+                                            <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${selected ? 'border-blue-600 bg-blue-600' : 'border-slate-300'}`}>
+                                                {selected && <Check size={12} className="text-white" />}
                                             </div>
                                             <div className="text-left">
-                                                <p className="text-base font-bold text-slate-900 tracking-tight">{method === 'COD' ? 'Cash Settlement' : 'Digital Transfer'}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                                <p className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">{method === 'COD' ? 'Cash Settlement' : 'Digital Transfer'}</p>
+                                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                                                     {method === 'COD' ? 'Pay On-Delivery' : 'Via Stripe Secured Network'}
                                                 </p>
                                             </div>
                                             {selected && (
                                                 <div className="absolute top-4 right-4 text-blue-600 animate-in zoom-in-50">
-                                                    <ShieldCheck size={20} />
+                                                    <ShieldCheck size={18} />
                                                 </div>
                                             )}
                                         </button>
@@ -417,37 +417,37 @@ export default function OrderPage() {
                     </div>
 
                     {/* ═══════════════ REQUISITION SUMMARY — RIGHT COLUMN ═══════════════ */}
-                    <div className="sticky top-32 space-y-6">
-                        <div className="bg-slate-900 rounded-[48px] p-8 sm:p-10 text-white shadow-2xl shadow-blue-900/10 overflow-hidden relative">
+                    <div className="lg:sticky lg:top-32 space-y-6 w-full order-1 lg:order-2">
+                        <div className="bg-slate-900 rounded-[32px] sm:rounded-[48px] p-6 sm:p-10 text-white shadow-2xl shadow-blue-900/10 overflow-hidden relative">
                             {/* Visual background gradient */}
                             <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-blue-600 rounded-full blur-[100px] opacity-20 -mr-20 -mt-20" />
 
-                            <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400 mb-8">Order Summary</h2>
+                            <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400 mb-6 sm:mb-8">Order Summary</h2>
 
-                            <div className="space-y-4 mb-10">
+                            <div className="space-y-4 mb-8 sm:mb-10">
                                 <div className="flex justify-between items-center text-slate-400">
-                                    <span className="text-xs font-bold uppercase tracking-widest">Subtotal</span>
-                                    <span className="text-lg font-bold text-white tracking-tighter">${subtotal.toLocaleString()}</span>
+                                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Subtotal</span>
+                                    <span className="text-base sm:text-lg font-bold text-white tracking-tighter">${subtotal.toLocaleString()}</span>
                                 </div>
 
                                 <div className="flex justify-between items-center text-slate-400 relative">
-                                    <span className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                                         <Truck size={14} className="text-blue-500" />
                                         Logistics Cost
                                     </span>
                                     {loadingDelivery ? (
                                         <Loader2 className="animate-spin text-blue-500" size={16} />
                                     ) : (
-                                        <span className="text-lg font-bold text-white tracking-tighter">
+                                        <span className="text-base sm:text-lg font-bold text-white tracking-tighter">
                                             {deliveryCharge !== null ? `$${deliveryCharge.toLocaleString()}` : '--'}
                                         </span>
                                     )}
                                 </div>
 
-                                <div className="pt-8 border-t border-slate-800 flex justify-between items-end">
+                                <div className="pt-6 sm:pt-8 border-t border-slate-800 flex justify-between items-end">
                                     <div>
-                                        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 block mb-2">Total Cost</span>
-                                        <span className="text-4xl font-black text-white tracking-tighter">
+                                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-500 block mb-2">Total Cost</span>
+                                        <span className="text-3xl sm:text-4xl font-black text-white tracking-tighter">
                                             {total !== null ? `$${total.toLocaleString()}` : '---'}
                                         </span>
                                     </div>
@@ -457,7 +457,7 @@ export default function OrderPage() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={submitting || loadingCart || cartItems.length === 0}
-                                className="w-full py-6 bg-blue-600 text-white font-bold text-sm uppercase tracking-[0.2em] rounded-[24px] shadow-2xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 active:translate-y-0 disabled:opacity-30 disabled:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 group"
+                                className="w-full py-5 sm:py-6 bg-blue-600 text-white font-bold text-xs sm:text-sm uppercase tracking-[0.2em] rounded-[24px] shadow-2xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 active:translate-y-0 disabled:opacity-30 disabled:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 group"
                             >
                                 {submitting ? (
                                     <>
@@ -473,18 +473,17 @@ export default function OrderPage() {
                             </button>
 
                             {errors.submit && (
-                                <p className="mt-4 text-center text-xs font-bold text-red-400 animate-in fade-in zoom-in-95">{errors.submit}</p>
+                                <p className="mt-4 text-center text-[10px] sm:text-xs font-bold text-red-400 animate-in fade-in zoom-in-95">{errors.submit}</p>
                             )}
                         </div>
 
                         {/* Support Info */}
                         <div className="bg-blue-50/50 rounded-3xl border border-blue-100 p-6">
-
-                            <p className="text-xs text-slate-600 font-medium leading-relaxed">Need assistance with your institutional requisition? Contact <br /> our technical support at 1800 633 338 or email us at info@sarengmedequip.com or
-                                leave a message <Link href="/#contact" className="text-slate-500 hover:text-blue-600 transition-colors">here</Link></p>
+                            <p className="text-[11px] sm:text-xs text-slate-600 font-medium leading-relaxed">
+                                Need assistance with your institutional requisition? Contact our technical support at 1800 633 338 or email us at info@sarengmedequip.com or leave a message <Link href="/#contact" className="text-slate-500 hover:text-blue-600 transition-colors">here</Link>
+                            </p>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

@@ -107,8 +107,8 @@ const NavBar: React.FC = () => {
 
     return (
         <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-                <div className="flex items-center gap-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+                <div className="flex items-center gap-4 sm:gap-8">
                     <ShopTitle />
 
                     <div className="hidden md:flex items-center gap-1">
@@ -138,17 +138,19 @@ const NavBar: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <NavButton />
+                <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="hidden sm:block">
+                        <NavButton />
+                    </div>
 
                     <button
                         onClick={() => setIsCartOpen(true)}
-                        className="relative group bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+                        className="relative group bg-blue-600 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-blue-600/20 hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                     >
-                        <ShoppingCart className="w-4 h-4" />
+                        <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         <span>Cart</span>
                         {cartCount > 0 && (
-                            <span className="bg-white text-blue-600 min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center text-[10px] font-black group-hover:scale-110 transition-transform">
+                            <span className="bg-white text-blue-600 min-w-[18px] h-4.5 sm:min-w-[20px] sm:h-5 px-1 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black group-hover:scale-110 transition-transform">
                                 {cartCount}
                             </span>
                         )}
