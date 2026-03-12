@@ -51,6 +51,7 @@ interface Product {
     categories: Category[];
     sold_count: number;
     total_count: number;
+    available_stock: number;
     image_src: string[];
 }
 
@@ -332,6 +333,9 @@ export default function ProductsPage() {
                                         <p className={`text-sm font-bold ${product.total_count < 5 ? 'text-red-500' : 'text-slate-900'}`}>
                                             {product.total_count} Units
                                         </p>
+                                        <p className="text-[10px] font-bold text-amber-500">
+                                            {product.available_stock} Available
+                                        </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unit Cost</p>
@@ -386,8 +390,9 @@ export default function ProductsPage() {
                                                         </div>
                                                         <div className="space-y-2">
                                                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Inventory</label>
-                                                            <div className="w-full px-5 py-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-400">
-                                                                {product.total_count} Units In-Stock
+                                                            <div className="w-full px-5 py-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-400 flex justify-between items-center">
+                                                                <span>{product.total_count} Total</span>
+                                                                <span className="text-amber-500">{product.available_stock} Available</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -490,8 +495,12 @@ export default function ProductsPage() {
                                                             <p className="text-2xl font-bold text-slate-900">{product.sold_count}</p>
                                                         </div>
                                                         <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
-                                                            <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">In-Stock Surplus</p>
+                                                            <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Total Stock</p>
                                                             <p className="text-2xl font-bold text-slate-900">{product.total_count}</p>
+                                                        </div>
+                                                        <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl shadow-sm col-span-2">
+                                                            <p className="text-[9px] font-bold text-amber-500 uppercase mb-1">Available (unreserved)</p>
+                                                            <p className="text-2xl font-bold text-amber-600">{product.available_stock}</p>
                                                         </div>
                                                     </div>
                                                 </div>

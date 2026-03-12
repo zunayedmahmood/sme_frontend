@@ -82,11 +82,13 @@ export default function ProductFeedPage() {
     };
 
     const handleAddToCart = (productId: number, availableStock: number) => {
-        addToCart(productId, availableStock);
-        setAddedIds(prev => [...prev, productId]);
-        setTimeout(() => {
-            setAddedIds(prev => prev.filter(id => id !== productId));
-        }, 1500);
+        const added = addToCart(productId, availableStock);
+        if (added) {
+            setAddedIds(prev => [...prev, productId]);
+            setTimeout(() => {
+                setAddedIds(prev => prev.filter(id => id !== productId));
+            }, 1500);
+        }
     };
 
 
@@ -214,7 +216,7 @@ export default function ProductFeedPage() {
                                                                 <span className="text-sm font-bold text-blue-600">{inCartQty}</span>
                                                             </div>
                                                             <button
-                                                                onClick={() => handleAddToCart(product.id, product.total_count)}
+                                                                onClick={() => handleAddToCart(product.id, product.available_stock)}
                                                                 className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 ${isJustAdded ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/20'}`}
                                                             >
                                                                 {isJustAdded ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}

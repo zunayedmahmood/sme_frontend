@@ -55,6 +55,7 @@ interface Product {
     categories: Category[];
     sold_count: number;
     total_count: number;
+    available_stock: number;
     image_src: string[];
     product_batches: ProductBatch[];
 }
@@ -205,7 +206,7 @@ export default function InventoryPage() {
                         Clinical Stock Management
                     </div>
                     <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Inventory Logistics</h1>
-                    <p className="text-slate-500 font-light mt-1">Manage hospital supply chains, batch procurements, and stock allocation.</p>
+                    <p className="text-slate-500 font-light mt-1">Manage hospital supply chains, batch Stocks, and stock allocation.</p>
                 </div>
                 <div className="relative w-full md:w-80 group">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/ group-focus-within:text-blue-500 text-slate-400 transition-colors w-4 h-4" />
@@ -252,7 +253,7 @@ export default function InventoryPage() {
                                             {product.product_batches.length} Batches
                                         </span>
                                         <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded ${product.total_count < 10 ? 'bg-red-50 text-red-500' : 'bg-slate-50 text-slate-500'}`}>
-                                            Available: {product.total_count}
+                                            Stock: {product.total_count}
                                         </span>
                                     </div>
                                 </div>
@@ -260,7 +261,7 @@ export default function InventoryPage() {
 
                             <div className="flex items-center gap-8">
                                 <div className="hidden sm:block text-right">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Total Procurement</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Total Stock</p>
                                     <p className="text-lg font-bold text-slate-900 leading-none">{product.sold_count + product.total_count} Units</p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -286,7 +287,7 @@ export default function InventoryPage() {
                                     <div className="lg:col-span-2 space-y-4">
                                         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">
                                             <Activity size={12} className="text-blue-500" />
-                                            Active Procurement History
+                                            Active Stock History
                                         </div>
                                         <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                             {product.product_batches.length > 0 ? product.product_batches.map((batch) => (
@@ -301,7 +302,7 @@ export default function InventoryPage() {
                                                                     <span className="text-xs font-bold text-slate-900 uppercase">Batch #{batch.id}</span>
                                                                     <span className="text-[10px] text-slate-400 font-medium">Logged: {new Date(batch.created_at).toLocaleDateString()}</span>
                                                                 </div>
-                                                                <p className="text-sm font-bold text-slate-500 mt-1 italic">${batch.cost_price} <span className="text-[10px] uppercase font-bold text-slate-300 ml-1">Ref Cost</span></p>
+                                                                <p className="text-sm font-bold text-slate-500 mt-1 italic">${batch.cost_price} <span className="text-[10px] uppercase font-bold text-slate-300 ml-1">Cost Price</span></p>
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-6">
@@ -332,7 +333,7 @@ export default function InventoryPage() {
                                                             <div className="flex-1 flex items-center gap-2 w-full">
                                                                 <input
                                                                     type="number"
-                                                                    placeholder="Volume to allocate..."
+                                                                    placeholder="Volume to remove..."
                                                                     value={removeQtyInput}
                                                                     min={1}
                                                                     max={batch.count}
@@ -348,7 +349,7 @@ export default function InventoryPage() {
                                                                     onClick={() => setRemoveQtyRequest({ product, batch, qty: parseInt(removeQtyInput) })}
                                                                     className="px-6 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-slate-800 transition-all shadow-md active:scale-95 disabled:opacity-50"
                                                                 >
-                                                                    Authorize
+                                                                    Remove
                                                                 </button>
                                                             </div>
                                                             <p className="text-[9px] font-bold text-slate-300 uppercase italic">Max limit: {batch.count} units</p>
@@ -358,7 +359,7 @@ export default function InventoryPage() {
                                             )) : (
                                                 <div className="py-20 bg-white/50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-300">
                                                     <Layers size={32} />
-                                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-3">Waste Protocol: Zero Active Stock</p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] mt-3">Current Inventory: Zero Active Stock</p>
                                                 </div>
                                             )}
                                         </div>
@@ -369,22 +370,26 @@ export default function InventoryPage() {
                                         <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
                                             <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-6">
                                                 <ShieldCheck size={12} className="text-green-500" />
-                                                Inventory Integrity
+                                                Product Details
                                             </h5>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">Retail Lock</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">Selling Price</p>
                                                     <p className="text-xl font-bold text-slate-900">${product.selling_price}</p>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">Allocation Ratio</p>
-                                                    <p className="text-xl font-bold text-slate-900">{(product.sold_count / (product.total_count + product.sold_count || 1) * 100).toFixed(1)}%</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase">Total Stock</p>
+                                                    <p className="text-xl font-bold text-slate-900">{product.total_count}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] font-bold text-amber-500 uppercase">Reserved</p>
+                                                    <p className="text-xl font-bold text-amber-500">{product.total_count - product.available_stock}</p>
                                                 </div>
                                             </div>
                                             <div className="mt-8 pt-8 border-t border-slate-50">
                                                 <p className="text-[9px] font-bold text-slate-400 uppercase mb-3 flex items-center gap-1">
                                                     <FileText size={10} />
-                                                    Administrative Log
+                                                    Product Description
                                                 </p>
                                                 <p className="text-xs text-slate-500 italic leading-relaxed font-light">
                                                     {product.description || 'Global inventory record without additional metadata.'}
@@ -397,7 +402,7 @@ export default function InventoryPage() {
                                             className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-[0.98] flex items-center justify-center gap-3"
                                         >
                                             <Plus size={18} />
-                                            Procure New Supply Batch
+                                            Add New Stock
                                         </button>
                                     </div>
                                 </div>
@@ -477,14 +482,14 @@ export default function InventoryPage() {
                                 <Plus size={32} />
                             </div>
                             <div>
-                                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Supply Procurement</h2>
+                                <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Supply Stock</h2>
                                 <p className="text-[10px] text-blue-600 font-bold tracking-[0.3em] mt-2 italic">{addModalProduct.name}</p>
                             </div>
                         </div>
 
                         <form onSubmit={handleAddBatch} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Historical Unit Cost ($)</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Unit Cost ($)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -496,7 +501,7 @@ export default function InventoryPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Aggregate Supply Volume</label>
+                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Supply Volume</label>
                                 <input
                                     type="number"
                                     required
@@ -509,7 +514,7 @@ export default function InventoryPage() {
 
                             <div className="flex flex-col gap-3 pt-6">
                                 <button type="submit" disabled={actionLoading} className="w-full h-14 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-[0.98]">
-                                    {actionLoading ? <Loader2 className="animate-spin mx-auto" /> : 'Authorize Procurement'}
+                                    {actionLoading ? <Loader2 className="animate-spin mx-auto" /> : 'Authorize Stock'}
                                 </button>
                                 <button type="button" onClick={() => setAddModalProduct(null)} className="w-full h-12 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-slate-900">Abort Protocol</button>
                             </div>
@@ -546,7 +551,7 @@ export default function InventoryPage() {
                         </div>
                         <div>
                             <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Batch Decommissioning?</h3>
-                            <p className="text-slate-500 text-sm font-light mt-2 italic leading-relaxed">Permanently purge this procurement record (Batch #{deleteBatchRequest.batch.id}) from clinical logistics?</p>
+                            <p className="text-slate-500 text-sm font-light mt-2 italic leading-relaxed">Permanently purge this Stock record (Batch #{deleteBatchRequest.batch.id}) from clinical logistics?</p>
                         </div>
                         <div className="flex gap-4">
                             <button onClick={() => setDeleteBatchRequest(null)} className="flex-1 py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-xl">Abort</button>

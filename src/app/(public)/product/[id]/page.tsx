@@ -26,6 +26,7 @@ interface Product {
     selling_price: number;
     sold_count: number;
     total_count: number;
+    available_stock: number;
     image_src: string[];
     categories: { id: number; name: string }[];
 }
@@ -62,7 +63,7 @@ export default function ProductDetailPage() {
 
 
     const currentQtyInCart = product ? (cart[product.id] || 0) : 0;
-    const maxCanAdd = product ? Math.max(0, Math.min(5, product.total_count) - currentQtyInCart) : 0;
+    const maxCanAdd = product ? Math.max(0, Math.min(5, product.available_stock) - currentQtyInCart) : 0;
 
     useEffect(() => {
         if (localQty > maxCanAdd && maxCanAdd > 0) setLocalQty(maxCanAdd);
@@ -71,11 +72,11 @@ export default function ProductDetailPage() {
 
     const handleAddToCart = (productId: number, availableStock: number) => {
         if (maxCanAdd <= 0) return;
-        setIsAdded(true);
         updateQuantity(productId, currentQtyInCart + localQty, availableStock);
+        setIsAdded(true);
         setLocalQty(1);
         setTimeout(() => setIsAdded(false), 2000);
-        setTimeout(() => setIsCartOpen(true), 800); // Auto open cart after a slight delay
+        setTimeout(() => setIsCartOpen(true), 800);
     };
 
     if (loading) {
@@ -168,7 +169,7 @@ export default function ProductDetailPage() {
                             Description
                         </h4>
                         <p className="text-slate-600 leading-relaxed font-light text-xl text-center lg:text-left">
-                            {product.description || "This clinical instrument is a key component of our professional inventory, meticulously verified for medical performance and reliability within our integrated supply matrix."}
+                            {product.description || "This clinical instrument is a key component of our professional inventory, meticulously verified for medical performance and reliability"}
                         </p>
                     </div>
 
@@ -193,7 +194,7 @@ export default function ProductDetailPage() {
                         </div>
 
                         <button
-                            onClick={() => handleAddToCart(product.id, product.total_count)}
+                            onClick={() => handleAddToCart(product.id, product.available_stock)}
                             disabled={maxCanAdd <= 0}
                             className={`flex flex-1 items-center justify-center space-x-3 py-6 rounded-[32px] font-bold text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xl ${isAdded ? 'bg-green-600 shadow-green-600/20 text-white animate-in zoom-in-95' : 'bg-blue-600 shadow-blue-600/20 text-white hover:bg-blue-700 hover:-translate-y-1'}`}
                         >
@@ -208,14 +209,14 @@ export default function ProductDetailPage() {
                                 <Package size={12} className="text-blue-400" />
                                 Inventory
                             </span>
-                            <span className="text-lg font-bold text-slate-900">{product.total_count < 10 ? `Only ${product.total_count} Units left` : 'Available'}</span>
+                            <span className="text-lg font-bold text-slate-900">{product.available_stock <= 0 ? 'Out of Stock' : product.available_stock < 10 ? `Only ${product.available_stock} left` : 'Available'}</span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
                                 <ShieldCheck size={12} className="text-blue-400" />
                                 Quality
                             </span>
-                            <span className="text-lg font-bold text-slate-900">Medical Grade</span>
+                            <span className="text-lg font-bold text-slate-900">Clinical Grade</span>
                         </div>
                     </div>
                 </div>

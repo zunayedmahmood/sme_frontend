@@ -20,7 +20,7 @@ interface CartContextType {
     cartDetails: ProductInfo[];
     isCartOpen: boolean;
     setIsCartOpen: (open: boolean) => void;
-    addToCart: (productId: number, availableStock: number, qty?: number) => void;
+    addToCart: (productId: number, availableStock: number, qty?: number) => boolean;
     removeFromCart: (productId: number) => void;
     updateQuantity: (productId: number, newQty: number, availableStock: number) => void;
     clearCart: () => void;
@@ -124,16 +124,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Actions
-    const addToCart = (productId: number, availableStock: number, qty = 1) => {
+    const addToCart = (productId: number, availableStock: number, qty = 1): boolean => {
         const currentQty = cart[productId] || 0;
         const maxAllowed = Math.min(5, availableStock);
 
-        if (currentQty + qty > maxAllowed) return;
+        if (currentQty + qty > maxAllowed) return false;
 
         setCart(prev => ({
             ...prev,
             [productId]: currentQty + qty
         }));
+        return true;
     };
 
     // Directly removes without confirmation — Cart.tsx handles the confirm modal

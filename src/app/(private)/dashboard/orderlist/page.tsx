@@ -51,7 +51,7 @@ interface StripeIdRecord {
 interface Order {
     id: number;
     order_id: string;
-    order_status: 'Pending' | 'Confirmed' | 'Delivered' | 'Cancelled';
+    order_status: 'Pending' | 'Confirmed' | 'Cancelled';
     payment_method: 'COD' | 'Online';
     payment_status: 'Unpaid' | 'Paid' | 'Failed';
     total_price: string;
@@ -105,28 +105,36 @@ const Badge = ({ children, className }: { children: React.ReactNode; className?:
     </span>
 );
 
-const Input = ({ label, ...props }: any) => (
+const Input = ({ label, error, ...props }: any) => (
     <div className="space-y-1.5 flex-1">
         {label && <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{label}</label>}
         <input
             {...props}
-            className={`w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:bg-white focus:border-blue-500 transition-all ${props.className || ''}`}
+            className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm font-medium outline-none focus:bg-white transition-all ${error
+                    ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
+                    : 'border-slate-200 focus:border-blue-500'
+                } ${props.className || ''}`}
         />
+        {error && <p className="text-[10px] font-bold text-red-500 ml-1 mt-1">{error}</p>}
     </div>
 );
 
-const Select = ({ label, children, ...props }: any) => (
+const Select = ({ label, children, error, ...props }: any) => (
     <div className="space-y-1.5 flex-1">
         {label && <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">{label}</label>}
         <div className="relative">
             <select
                 {...props}
-                className={`w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none appearance-none focus:ring-2 focus:ring-blue-500 transition-all ${props.className || ''}`}
+                className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm font-medium outline-none appearance-none focus:ring-2 transition-all ${error
+                        ? 'border-red-400 bg-red-50 focus:ring-red-500/10 focus:border-red-500'
+                        : 'border-slate-200 focus:ring-blue-500'
+                    } ${props.className || ''}`}
             >
                 {children}
             </select>
             <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
+        {error && <p className="text-[10px] font-bold text-red-500 ml-1 mt-1">{error}</p>}
     </div>
 );
 
@@ -135,7 +143,6 @@ const Select = ({ label, children, ...props }: any) => (
 const statusConfig: Record<Order['order_status'], { color: string, icon: any }> = {
     Pending: { color: 'bg-amber-50 text-amber-600 border-amber-100', icon: Clock },
     Confirmed: { color: 'bg-blue-50 text-blue-600 border-blue-100', icon: Activity },
-    Delivered: { color: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: ShieldCheck },
     Cancelled: { color: 'bg-red-50 text-red-600 border-red-100', icon: AlertCircle }
 };
 
@@ -177,6 +184,9 @@ export default function OrderListPage() {
 
     // Edit Sate
     const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
+
+    // Validation errors for create modal
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     // Helpers for address fetching
     const [divisions, setDivisions] = useState<Division[]>([]);
@@ -291,6 +301,22 @@ export default function OrderListPage() {
     };
 
     const handleCreateOrder = async () => {
+        // Validate
+        const errors: Record<string, string> = {};
+        if (!formData.ordered_products?.length) errors.products = 'At least one product is required.';
+        if (!formData.customer_details?.name?.trim()) errors.name = 'Full name is required.';
+        if (!formData.customer_details?.email?.trim()) errors.email = 'Email is required.';
+        if (!formData.customer_details?.phone?.trim()) errors.phone = 'Phone number is required.';
+        if (!formData.address?.selection?.division) errors.division = 'Division is required.';
+        if (!formData.address?.selection?.district) errors.district = 'District is required.';
+        if (!formData.address?.details?.trim()) errors.address_details = 'Address details are required.';
+
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            return;
+        }
+        setFormErrors({});
+
         setActionLoading(true);
         try {
             const payload = {
@@ -316,7 +342,7 @@ export default function OrderListPage() {
                 });
             }
         } catch (err) {
-            alert('Order creation failed. Check parameters.');
+            setFormErrors({ submit: 'Order creation failed. Check parameters.' });
         } finally {
             setActionLoading(false);
         }
@@ -561,17 +587,17 @@ export default function OrderListPage() {
                                                             </h4>
                                                             {isEditing ? (
                                                                 <div className="space-y-3 pt-2">
-                                                                    <Input 
-                                                                        label="Checkout Session ID" 
-                                                                        placeholder="cs_test_..." 
-                                                                        value={formData.stripe_checkout_session_id} 
-                                                                        onChange={(e: any) => setFormData(prev => ({ ...prev, stripe_checkout_session_id: e.target.value }))} 
+                                                                    <Input
+                                                                        label="Checkout Session ID"
+                                                                        placeholder="cs_test_..."
+                                                                        value={formData.stripe_checkout_session_id}
+                                                                        onChange={(e: any) => setFormData(prev => ({ ...prev, stripe_checkout_session_id: e.target.value }))}
                                                                     />
-                                                                    <Input 
-                                                                        label="Payment Intent ID" 
-                                                                        placeholder="pi_..." 
-                                                                        value={formData.stripe_payment_intent_id} 
-                                                                        onChange={(e: any) => setFormData(prev => ({ ...prev, stripe_payment_intent_id: e.target.value }))} 
+                                                                    <Input
+                                                                        label="Payment Intent ID"
+                                                                        placeholder="pi_..."
+                                                                        value={formData.stripe_payment_intent_id}
+                                                                        onChange={(e: any) => setFormData(prev => ({ ...prev, stripe_payment_intent_id: e.target.value }))}
                                                                     />
                                                                 </div>
                                                             ) : (
@@ -822,7 +848,7 @@ export default function OrderListPage() {
                                 <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Manual Requisition</h2>
                                 <p className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.2em] mt-1">Initiating clinical procurement protocol</p>
                             </div>
-                            <button onClick={() => setIsCreateModalOpen(false)} className="p-3 bg-slate-50 rounded-full text-slate-400 hover:text-slate-900"><X size={24} /></button>
+                            <button onClick={() => { setIsCreateModalOpen(false); setFormErrors({}); }} className="p-3 bg-slate-50 rounded-full text-slate-400 hover:text-slate-900"><X size={24} /></button>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12">
@@ -840,9 +866,11 @@ export default function OrderListPage() {
                                     </div>
                                     <div className="bg-slate-50 border border-slate-100 rounded-[32px] overflow-hidden">
                                         {formData.ordered_products?.length === 0 ? (
-                                            <div className="py-20 flex flex-col items-center justify-center text-slate-300 gap-4">
-                                                <Box size={40} strokeWidth={1} />
-                                                <p className="text-[10px] font-bold uppercase tracking-widest">Manifest is empty</p>
+                                            <div className={`py-20 flex flex-col items-center justify-center gap-4 ${formErrors.products ? 'bg-red-50 border border-red-200 rounded-[32px]' : 'text-slate-300'}`}>
+                                                <Box size={40} strokeWidth={1} className={formErrors.products ? 'text-red-300' : ''} />
+                                                <p className={`text-[10px] font-bold uppercase tracking-widest ${formErrors.products ? 'text-red-400' : ''}`}>
+                                                    {formErrors.products || 'Manifest is empty'}
+                                                </p>
                                             </div>
                                         ) : (
                                             <div className="divide-y divide-slate-100">
@@ -876,9 +904,9 @@ export default function OrderListPage() {
                                         Personnel Information
                                     </h4>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <Input label="Full Name" placeholder="Dr. John Smith" value={formData.customer_details?.name} onChange={(e: any) => setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, name: e.target.value } }))} />
-                                        <Input label="Contact email" placeholder="hospital@region.gov" value={formData.customer_details?.email} onChange={(e: any) => setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, email: e.target.value } }))} />
-                                        <Input label="Phone Line" placeholder="01XXXXXXXXX" value={formData.customer_details?.phone} onChange={(e: any) => setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, phone: e.target.value } }))} />
+                                        <Input label="Full Name" placeholder="Dr. John Smith" error={formErrors.name} value={formData.customer_details?.name} onChange={(e: any) => { setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, name: e.target.value } })); setFormErrors(prev => ({ ...prev, name: '' })); }} />
+                                        <Input label="Contact email" placeholder="hospital@region.gov" error={formErrors.email} value={formData.customer_details?.email} onChange={(e: any) => { setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, email: e.target.value } })); setFormErrors(prev => ({ ...prev, email: '' })); }} />
+                                        <Input label="Phone Line" placeholder="01XXXXXXXXX" error={formErrors.phone} value={formData.customer_details?.phone} onChange={(e: any) => { setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, phone: e.target.value } })); setFormErrors(prev => ({ ...prev, phone: '' })); }} />
                                     </div>
                                 </div>
 
@@ -891,10 +919,12 @@ export default function OrderListPage() {
                                         <div className="grid grid-cols-2 gap-5">
                                             <Select
                                                 label="Division"
+                                                error={formErrors.division}
                                                 onChange={(e: any) => {
                                                     const div = divisions.find(d => d.id === e.target.value);
                                                     setFormData(prev => ({ ...prev, address: { ...prev.address!, selection: { division: div?.name || '', district: '' } } }));
                                                     if (div) fetchDistricts(div.id);
+                                                    setFormErrors(prev => ({ ...prev, division: '' }));
                                                 }}
                                             >
                                                 <option value="">Select Division</option>
@@ -902,9 +932,10 @@ export default function OrderListPage() {
                                             </Select>
                                             <Select
                                                 label="District"
+                                                error={formErrors.district}
                                                 disabled={!formData.address?.selection.division || loadingDistricts}
                                                 value={formData.address?.selection.district}
-                                                onChange={(e: any) => setFormData(prev => ({ ...prev, address: { ...prev.address!, selection: { ...prev.address!.selection, district: e.target.value } } }))}
+                                                onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, selection: { ...prev.address!.selection, district: e.target.value } } })); setFormErrors(prev => ({ ...prev, district: '' })); }}
                                             >
                                                 <option value="">{loadingDistricts ? 'Synchronizing...' : 'Select District'}</option>
                                                 {districts.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
@@ -913,8 +944,9 @@ export default function OrderListPage() {
                                         <Input
                                             label="Specific Address Details"
                                             placeholder="Floor, Wing, Room Number, Street Address..."
+                                            error={formErrors.address_details}
                                             value={formData.address?.details}
-                                            onChange={(e: any) => setFormData(prev => ({ ...prev, address: { ...prev.address!, details: e.target.value } }))}
+                                            onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, details: e.target.value } })); setFormErrors(prev => ({ ...prev, address_details: '' })); }}
                                         />
                                     </div>
                                 </div>
@@ -950,13 +982,31 @@ export default function OrderListPage() {
                                             className="bg-slate-800 border-none text-[10px] h-12"
                                             label="Settlement Logic"
                                             value={formData.payment_method}
-                                            onChange={(e: any) => setFormData(prev => ({ ...prev, payment_method: e.target.value }))}
+                                            onChange={(e: any) => {
+                                                const method = e.target.value;
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    payment_method: method,
+                                                    // COD → auto-confirm; switching away from COD resets to Pending
+                                                    order_status: method === 'COD' ? 'Confirmed' : 'Pending',
+                                                }));
+                                            }}
                                         >
                                             <option value="COD">CASH ON DELIVERY</option>
                                             <option value="Online">ONLINE TRANSFER (STRIPE)</option>
                                         </Select>
 
-                                        {formData.payment_method === 'Online' && (
+                                        <Select
+                                            className="bg-slate-800 border-none text-[10px] h-12"
+                                            label="Initial Status"
+                                            value={formData.order_status}
+                                            onChange={(e: any) => setFormData(prev => ({ ...prev, order_status: e.target.value }))}
+                                        >
+                                            <option value="Pending">PENDING APPROVAL</option>
+                                            <option value="Confirmed">CONFIRMED LOGISTICS</option>
+                                        </Select>
+
+                                        {formData.payment_method === 'Online' && formData.order_status === 'Confirmed' && (
                                             <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                                 <div className="space-y-1">
                                                     <label className="text-[9px] font-bold text-blue-400 uppercase tracking-widest ml-1">Stripe Session ID</label>
@@ -980,19 +1030,13 @@ export default function OrderListPage() {
                                                 </div>
                                             </div>
                                         )}
-                                        <Select
-                                            className="bg-slate-800 border-none text-[10px] h-12"
-                                            label="Initial Status"
-                                            value={formData.order_status}
-                                            onChange={(e: any) => setFormData(prev => ({ ...prev, order_status: e.target.value }))}
-                                        >
-                                            <option value="Pending">PENDING APPROVAL</option>
-                                            <option value="Confirmed">CONFIRMED LOGISTICS</option>
-                                        </Select>
                                     </div>
+                                    {formErrors.submit && (
+                                        <p className="text-[10px] font-bold text-red-400 text-center mb-4">{formErrors.submit}</p>
+                                    )}
                                     <button
                                         onClick={handleCreateOrder}
-                                        disabled={actionLoading || !formData.customer_details?.name || formData.ordered_products?.length === 0}
+                                        disabled={actionLoading}
                                         className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-30 active:scale-[0.98] flex items-center justify-center gap-2"
                                     >
                                         {actionLoading ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
