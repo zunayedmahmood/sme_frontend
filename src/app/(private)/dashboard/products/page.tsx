@@ -12,7 +12,8 @@ import {
     deleteProductImages,
     getAllCategories,
     updateProductDescription,
-    createProduct
+    createProduct,
+    updateDynamicPricing
 } from '@/lib/api/api_private';
 import {
     ChevronDown,
@@ -47,12 +48,14 @@ interface Product {
     id: number;
     name: string;
     description: string | null;
-    selling_price: string | number;
+    selling_price: string | number | null;
     categories: Category[];
     sold_count: number;
     total_count: number;
     available_stock: number;
     image_src: string[];
+    has_dynamic_pricing: boolean;
+    price_slabs: { min_qty: number; max_qty: number | null; price: number }[] | null;
 }
 
 interface PaginationMeta {
@@ -83,10 +86,12 @@ export default function ProductsPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [createForm, setCreateForm] = useState({
         name: '',
-        selling_price: '',
+        selling_price: '' as string | number,
         description: '',
         categories: [] as number[],
-        images: [] as File[]
+        images: [] as File[],
+        has_dynamic_pricing: false,
+        price_slabs: [] as { min_qty: number; max_qty: number | null; price: number }[]
     });
     const [imageError, setImageError] = useState(false);
 
@@ -161,8 +166,16 @@ export default function ProductsPage() {
 
         try {
             if (editForm.name !== original.name) await updateProductName(editProductId, editForm.name);
-            if (editForm.selling_price !== original.selling_price) await updateSellingPrice(editProductId, Number(editForm.selling_price));
+            
+            const newPrice = editForm.selling_price === '' || editForm.selling_price === null ? null : Number(editForm.selling_price);
+            const originalPrice = original.selling_price === '' || original.selling_price === null ? null : Number(original.selling_price);
+            if (newPrice !== originalPrice) await updateSellingPrice(editProductId, newPrice as any);
+            
             if (editForm.description !== original.description) await updateProductDescription(editProductId, editForm.description);
+            
+            if (editForm.has_dynamic_pricing !== original.has_dynamic_pricing || JSON.stringify(editForm.price_slabs) !== JSON.stringify(original.price_slabs)) {
+                await updateDynamicPricing(editProductId, editForm.has_dynamic_pricing, editForm.price_slabs);
+            }
 
             const originalCatIds = original.categories.map(c => c.id);
             const newCatIds = editForm.categories.map(c => c.id);
@@ -240,11 +253,13 @@ export default function ProductsPage() {
             formData.append('name', createForm.name);
             formData.append('selling_price', createForm.selling_price);
             formData.append('description', createForm.description);
+            formData.append('has_dynamic_pricing', createForm.has_dynamic_pricing ? '1' : '0');
+            formData.append('price_slabs', JSON.stringify(createForm.price_slabs));
             createForm.categories.forEach(id => formData.append('categories_id[]', id.toString()));
             createForm.images.forEach(file => formData.append('image_src[]', file));
             await createProduct(formData);
             fetchProducts(1);
-            setCreateForm({ name: '', selling_price: '', description: '', categories: [], images: [] });
+            setCreateForm({ name: '', selling_price: '' as string | number, description: '', categories: [], images: [], has_dynamic_pricing: false, price_slabs: [] });
             setIsCreateModalOpen(false);
         } catch (err) {
             alert('New product registration failed.');
@@ -253,6 +268,39 @@ export default function ProductsPage() {
         }
     };
 
+
+    const addPriceSlab = (isEdit: boolean) => {
+        const newSlab = { min_qty: 1, max_qty: null as number | null, price: 0 };
+        if (isEdit) {
+            setEditForm({ ...editForm!, price_slabs: [...(editForm?.price_slabs || []), newSlab] });
+        } else {
+            setCreateForm({ ...createForm, price_slabs: [...createForm.price_slabs, newSlab] });
+        }
+    };
+
+    const removePriceSlab = (isEdit: boolean, index: number) => {
+        if (isEdit) {
+            const newSlabs = [...(editForm?.price_slabs || [])];
+            newSlabs.splice(index, 1);
+            setEditForm({ ...editForm!, price_slabs: newSlabs });
+        } else {
+            const newSlabs = [...createForm.price_slabs];
+            newSlabs.splice(index, 1);
+            setCreateForm({ ...createForm, price_slabs: newSlabs });
+        }
+    };
+
+    const updatePriceSlab = (isEdit: boolean, index: number, field: string, value: any) => {
+        if (isEdit) {
+            const newSlabs = [...(editForm?.price_slabs || [])];
+            (newSlabs[index] as any)[field] = value;
+            setEditForm({ ...editForm!, price_slabs: newSlabs });
+        } else {
+            const newSlabs = [...createForm.price_slabs];
+            (newSlabs[index] as any)[field] = value;
+            setCreateForm({ ...createForm, price_slabs: newSlabs });
+        }
+    };
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
@@ -405,6 +453,70 @@ export default function ProductsPage() {
                                                             className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all resize-none"
                                                             placeholder="Describe clinical applications..."
                                                         />
+                                                    </div>
+                                                    <div className="space-y-4 pt-4 border-t border-slate-100">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dynamic Pricing Slabs</label>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setEditForm({ ...editForm!, has_dynamic_pricing: !editForm?.has_dynamic_pricing })}
+                                                                className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${editForm?.has_dynamic_pricing ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'}`}
+                                                            >
+                                                                {editForm?.has_dynamic_pricing ? 'ENABLED' : 'DISABLED'}
+                                                            </button>
+                                                        </div>
+
+                                                        {editForm?.has_dynamic_pricing && (
+                                                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                                {(editForm.price_slabs || []).map((slab, idx) => (
+                                                                    <div key={idx} className="flex gap-3 items-end bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <label className="text-[8px] font-bold text-slate-400 uppercase">Min Qty</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={slab.min_qty}
+                                                                                onChange={(e) => updatePriceSlab(true, idx, 'min_qty', parseInt(e.target.value))}
+                                                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <label className="text-[8px] font-bold text-slate-400 uppercase">Max Qty</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={slab.max_qty || ''}
+                                                                                onChange={(e) => updatePriceSlab(true, idx, 'max_qty', e.target.value ? parseInt(e.target.value) : null)}
+                                                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
+                                                                                placeholder="∞"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <label className="text-[8px] font-bold text-slate-400 uppercase">Price ($)</label>
+                                                                            <input
+                                                                                type="number"
+                                                                                value={slab.price}
+                                                                                onChange={(e) => updatePriceSlab(true, idx, 'price', parseFloat(e.target.value))}
+                                                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
+                                                                            />
+                                                                        </div>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => removePriceSlab(true, idx)}
+                                                                            className="p-2.5 text-red-400 hover:text-red-600 transition-colors"
+                                                                        >
+                                                                            <Trash2 size={16} />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => addPriceSlab(true)}
+                                                                    className="w-full py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:bg-white hover:border-blue-400 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
+                                                                >
+                                                                    <Plus size={14} />
+                                                                    ADD PRICE SLAB
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     <div className="space-y-4">
                                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Product Categories</label>
@@ -741,6 +853,70 @@ export default function ProductsPage() {
                                             placeholder="Detailed technical overview and safety warnings..."
                                             className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all resize-none"
                                         />
+                                    </div>
+                                    <div className="space-y-4 pt-4 border-t border-slate-100">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dynamic Pricing Slabs</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCreateForm({ ...createForm, has_dynamic_pricing: !createForm.has_dynamic_pricing })}
+                                                className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${createForm.has_dynamic_pricing ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'}`}
+                                            >
+                                                {createForm.has_dynamic_pricing ? 'ENABLED' : 'DISABLED'}
+                                            </button>
+                                        </div>
+
+                                        {createForm.has_dynamic_pricing && (
+                                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                {createForm.price_slabs.map((slab, idx) => (
+                                                    <div key={idx} className="flex gap-3 items-end bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                                        <div className="flex-1 space-y-1">
+                                                            <label className="text-[8px] font-bold text-slate-400 uppercase">Min Qty</label>
+                                                            <input
+                                                                type="number"
+                                                                value={slab.min_qty}
+                                                                onChange={(e) => updatePriceSlab(false, idx, 'min_qty', parseInt(e.target.value))}
+                                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1 space-y-1">
+                                                            <label className="text-[8px] font-bold text-slate-400 uppercase">Max Qty</label>
+                                                            <input
+                                                                type="number"
+                                                                value={slab.max_qty || ''}
+                                                                onChange={(e) => updatePriceSlab(false, idx, 'max_qty', e.target.value ? parseInt(e.target.value) : null)}
+                                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
+                                                                placeholder="∞"
+                                                            />
+                                                        </div>
+                                                        <div className="flex-1 space-y-1">
+                                                            <label className="text-[8px] font-bold text-slate-400 uppercase">Price ($)</label>
+                                                            <input
+                                                                type="number"
+                                                                value={slab.price}
+                                                                onChange={(e) => updatePriceSlab(false, idx, 'price', parseFloat(e.target.value))}
+                                                                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
+                                                            />
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removePriceSlab(false, idx)}
+                                                            className="p-2.5 text-red-400 hover:text-red-600 transition-colors"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => addPriceSlab(false)}
+                                                    className="w-full py-2.5 border-2 border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:bg-white hover:border-blue-400 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <Plus size={14} />
+                                                    ADD PRICE SLAB
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

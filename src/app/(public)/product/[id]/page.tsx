@@ -14,7 +14,8 @@ import {
     Minus,
     ShieldCheck,
     Activity,
-    Package
+    Package,
+    MessageCircle
 } from 'lucide-react';
 
 const PLACEHOLDER_IMG = '/stock_image.png';
@@ -23,12 +24,14 @@ interface Product {
     id: number;
     name: string;
     description: string;
-    selling_price: number;
+    selling_price: number | null;
     sold_count: number;
     total_count: number;
     available_stock: number;
     image_src: string[];
     categories: { id: number; name: string }[];
+    has_dynamic_pricing: boolean;
+    price_slabs: { min_qty: number; max_qty: number | null; price: number }[] | null;
 }
 
 export default function ProductDetailPage() {
@@ -63,7 +66,7 @@ export default function ProductDetailPage() {
 
 
     const currentQtyInCart = product ? (cart[product.id] || 0) : 0;
-    const maxCanAdd = product ? Math.max(0, Math.min(5, product.available_stock) - currentQtyInCart) : 0;
+    const maxCanAdd = product ? Math.max(0, product.available_stock - currentQtyInCart) : 0;
 
     useEffect(() => {
         if (localQty > maxCanAdd && maxCanAdd > 0) setLocalQty(maxCanAdd);
@@ -160,8 +163,31 @@ export default function ProductDetailPage() {
                     </h1>
 
                     <div className="flex items-baseline gap-4 mb-8 sm:mb-12 justify-center lg:justify-start">
-                        <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">${product.selling_price}</span>
+                        {product.selling_price !== null ? (
+                            <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">${product.selling_price}</span>
+                        ) : (
+                            <span className="text-2xl sm:text-3xl font-bold text-blue-600 tracking-tight">Price on Request</span>
+                        )}
                     </div>
+
+                    {product.has_dynamic_pricing && product.price_slabs && product.price_slabs.length > 0 && (
+                        <div className="mb-8 p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50">
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
+                                <Activity size={14} />
+                                Dynamic Pricing Tiers
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                {product.price_slabs.map((slab, index) => (
+                                    <div key={index} className="bg-white p-3 rounded-2xl border border-blue-100 flex flex-col">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                            {slab.max_qty ? `${slab.min_qty} - ${slab.max_qty} Units` : `${slab.min_qty}+ Units`}
+                                        </span>
+                                        <span className="text-lg font-black text-slate-900">${slab.price}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-4 sm:space-y-6 mb-8 sm:mb-12 bg-slate-50 p-6 sm:p-10 rounded-[32px] sm:rounded-[40px] border border-white shadow-inner">
                         <h4 className="flex items-center gap-2 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 justify-center lg:justify-start">
@@ -174,33 +200,45 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] lg:grid-cols-[160px_1fr] xl:grid-cols-[200px_1fr] gap-4 sm:gap-5">
-                        {/* Qty Stepper */}
-                        <div className="bg-slate-50 border border-slate-100 rounded-2xl sm:rounded-[32px] p-1.5 sm:p-2 flex items-center justify-between shadow-sm">
-                            <button
-                                onClick={() => setLocalQty(q => Math.max(1, q - 1))}
-                                disabled={localQty <= 1}
-                                className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
-                            >
-                                <Minus size={16} />
-                            </button>
-                            <span className="text-xl sm:text-2xl font-bold text-slate-900">{localQty}</span>
-                            <button
-                                onClick={() => setLocalQty(q => Math.min(maxCanAdd, q + 1))}
-                                disabled={localQty >= maxCanAdd}
-                                className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-blue-600 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
-                            >
-                                <Plus size={16} />
-                            </button>
-                        </div>
+                        {product.selling_price !== null ? (
+                            <>
+                                {/* Qty Stepper */}
+                                <div className="bg-slate-50 border border-slate-100 rounded-2xl sm:rounded-[32px] p-1.5 sm:p-2 flex items-center justify-between shadow-sm">
+                                    <button
+                                        onClick={() => setLocalQty(q => Math.max(1, q - 1))}
+                                        disabled={localQty <= 1}
+                                        className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
+                                    >
+                                        <Minus size={16} />
+                                    </button>
+                                    <span className="text-xl sm:text-2xl font-bold text-slate-900">{localQty}</span>
+                                    <button
+                                        onClick={() => setLocalQty(q => Math.min(maxCanAdd, q + 1))}
+                                        disabled={localQty >= maxCanAdd}
+                                        className="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-slate-400 hover:bg-white hover:text-blue-600 hover:shadow-xl transition-all rounded-xl sm:rounded-2xl disabled:opacity-20 disabled:cursor-not-allowed active:scale-95"
+                                    >
+                                        <Plus size={16} />
+                                    </button>
+                                </div>
 
-                        <button
-                            onClick={() => handleAddToCart(product.id, product.available_stock)}
-                            disabled={maxCanAdd <= 0}
-                            className={`flex items-center justify-center space-x-3 py-4 sm:py-6 rounded-2xl sm:rounded-[32px] font-bold text-xs sm:text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xl ${isAdded ? 'bg-green-600 shadow-green-600/20 text-white animate-in zoom-in-95' : 'bg-blue-600 shadow-blue-600/20 text-white hover:bg-blue-700 hover:-translate-y-1'}`}
-                        >
-                            {isAdded ? <CheckCircle2 size={18} /> : <ShoppingCart size={18} />}
-                            <span>{isAdded ? 'Logistics Updated' : maxCanAdd <= 0 ? 'Quota Full' : 'Add to Cart'}</span>
-                        </button>
+                                <button
+                                    onClick={() => handleAddToCart(product.id, product.available_stock)}
+                                    disabled={maxCanAdd <= 0}
+                                    className={`flex items-center justify-center space-x-3 py-4 sm:py-6 rounded-2xl sm:rounded-[32px] font-bold text-xs sm:text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xl ${isAdded ? 'bg-green-600 shadow-green-600/20 text-white animate-in zoom-in-95' : 'bg-blue-600 shadow-blue-600/20 text-white hover:bg-blue-700 hover:-translate-y-1'}`}
+                                >
+                                    {isAdded ? <CheckCircle2 size={18} /> : <ShoppingCart size={18} />}
+                                    <span>{isAdded ? 'Logistics Updated' : maxCanAdd <= 0 ? 'Quota Full' : 'Add to Cart'}</span>
+                                </button>
+                            </>
+                        ) : (
+                            <Link
+                                href="/#contact"
+                                className="col-span-full flex items-center justify-center space-x-3 py-4 sm:py-6 bg-slate-900 shadow-2xl shadow-slate-900/10 text-white rounded-2xl sm:rounded-[32px] font-bold text-xs sm:text-sm uppercase tracking-widest hover:bg-blue-600 hover:-translate-y-1 transition-all active:scale-[0.98]"
+                            >
+                                <MessageCircle size={18} />
+                                <span>Contact Us for Pricing</span>
+                            </Link>
+                        )}
                     </div>
 
                     <div className="mt-8 sm:mt-12 pt-8 sm:pt-10 border-t border-slate-100 flex flex-wrap items-center justify-center lg:justify-start gap-8 sm:gap-12 text-center lg:text-left">

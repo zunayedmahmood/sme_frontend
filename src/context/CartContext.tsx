@@ -126,7 +126,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // Actions
     const addToCart = (productId: number, availableStock: number, qty = 1): boolean => {
         const currentQty = cart[productId] || 0;
-        const maxAllowed = Math.min(5, availableStock);
+        const maxAllowed = availableStock;
 
         if (currentQty + qty > maxAllowed) return false;
 
@@ -158,13 +158,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             setCartDetails(prev => prev.filter(p => p.id !== productId));
             return;
         }
-        const maxAllowed = Math.min(5, availableStock);
+        const maxAllowed = availableStock;
         if (newQty > maxAllowed) return;
 
-        setCart(prev => ({
-            ...prev,
-            [productId]: newQty
-        }));
+        setCart(prev => {
+            const newCart = {
+                ...prev,
+                [productId]: newQty
+            };
+            return newCart;
+        });
+
+        // Trigger refresh to get updated dynamic prices
+        setTimeout(() => refreshCart(), 0);
     };
 
     const clearCart = () => {

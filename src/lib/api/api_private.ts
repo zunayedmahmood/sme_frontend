@@ -113,6 +113,11 @@ export const updateProductDescription = async (id: number | string, description:
     return response.data;
 };
 
+export const updateDynamicPricing = async (id: number | string, has_dynamic_pricing: boolean, price_slabs: any[] | null) => {
+    const response = await api.patch(`/product/${id}/dynamic-pricing`, { has_dynamic_pricing, price_slabs });
+    return response.data;
+};
+
 export const addProductCategories = async (pid: number | string, categoryIds: number[]) => {
     const response = await api.post(`/product/${pid}/categories`, { category_ids: categoryIds });
     return response.data;
