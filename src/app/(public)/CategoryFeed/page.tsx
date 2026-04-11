@@ -76,7 +76,7 @@ function CategoryFeedContent() {
     };
 
     const handleAddToCart = (productId: number, totalCount: number) => {
-        addToCart(productId, totalCount);
+        addToCart(productId, null, totalCount);
         setAddedIds(prev => [...prev, productId]);
         setTimeout(() => {
             setAddedIds(prev => prev.filter(id => id !== productId));

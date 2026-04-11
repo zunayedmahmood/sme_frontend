@@ -83,7 +83,7 @@ export default function ProductFeedPage() {
     };
 
     const handleAddToCart = (productId: number, availableStock: number) => {
-        const added = addToCart(productId, availableStock);
+        const added = addToCart(productId, null, availableStock);
         if (added) {
             setAddedIds(prev => [...prev, productId]);
             setTimeout(() => {
