@@ -20,6 +20,16 @@ import {
 
 const PLACEHOLDER_IMG = '/stock_image.png';
 
+interface Variation {
+    id: number;
+    name: string;
+    selling_price: number | null;
+    has_dynamic_pricing: boolean;
+    price_slabs: { min_qty: number; max_qty: number | null; price: number }[] | null;
+    image_src: string[] | null;
+    available_stock: number;
+}
+
 interface Product {
     id: number;
     name: string;
@@ -32,6 +42,8 @@ interface Product {
     categories: { id: number; name: string }[];
     has_dynamic_pricing: boolean;
     price_slabs: { min_qty: number; max_qty: number | null; price: number }[] | null;
+    has_variations: boolean;
+    variations: Variation[];
 }
 
 export default function ProductDetailPage() {
@@ -40,6 +52,7 @@ export default function ProductDetailPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeImage, setActiveImage] = useState(0);
+    const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
 
     // Cart Context
     const { cart, updateQuantity, setIsCartOpen } = useCart();
@@ -57,6 +70,9 @@ export default function ProductDetailPage() {
         try {
             const response = await getProductById(id as string);
             setProduct(response.data);
+            if (response.data?.has_variations && response.data?.variations?.length > 0) {
+                setSelectedVariation(response.data.variations[0]);
+            }
         } catch (err) {
             setError('Equipment profile not found.');
         } finally {
@@ -65,17 +81,25 @@ export default function ProductDetailPage() {
     };
 
 
-    const currentQtyInCart = product ? (cart[product.id] || 0) : 0;
-    const maxCanAdd = product ? Math.max(0, product.available_stock - currentQtyInCart) : 0;
+    const currentVariation = selectedVariation ?? null;
+    const currentPrice = currentVariation ? currentVariation.selling_price : product?.selling_price;
+    const currentSlabs = currentVariation ? currentVariation.price_slabs : product?.price_slabs;
+    const hasDynamic = currentVariation ? currentVariation.has_dynamic_pricing : product?.has_dynamic_pricing;
+    const currentStock = currentVariation ? currentVariation.available_stock : product?.available_stock;
+    const displayImages = (currentVariation && currentVariation.image_src && currentVariation.image_src.length > 0) ? currentVariation.image_src : (product?.image_src || []);
+    
+    const cartKey = currentVariation ? `${product?.id}-${currentVariation.id}` : `${product?.id}-null`;
+    const currentQtyInCart = product ? (cart[cartKey] || 0) : 0;
+    const maxCanAdd = product ? Math.max(0, (currentStock || 0) - currentQtyInCart) : 0;
 
     useEffect(() => {
         if (localQty > maxCanAdd && maxCanAdd > 0) setLocalQty(maxCanAdd);
         if (maxCanAdd === 0) setLocalQty(1);
     }, [maxCanAdd]);
 
-    const handleAddToCart = (productId: number, availableStock: number) => {
+    const handleAddToCart = (availableStock: number) => {
         if (maxCanAdd <= 0) return;
-        updateQuantity(productId, currentQtyInCart + localQty, availableStock);
+        updateQuantity(cartKey, currentQtyInCart + localQty, availableStock);
         setIsAdded(true);
         setLocalQty(1);
         setTimeout(() => setIsAdded(false), 2000);
@@ -116,7 +140,7 @@ export default function ProductDetailPage() {
                 <div className="space-y-6 sm:space-y-8 lg:sticky lg:top-32">
                     <div className="aspect-[4/5] bg-slate-50 rounded-3xl sm:rounded-[48px] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/50 group relative">
                         <img
-                            src={product.image_src.length > 0 ? product.image_src[activeImage] : PLACEHOLDER_IMG}
+                            src={displayImages.length > 0 ? displayImages[activeImage] : PLACEHOLDER_IMG}
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.05]"
                         />
@@ -133,9 +157,9 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
                     </div>
-                    {product.image_src.length > 1 && (
+                    {displayImages.length > 1 && (
                         <div className="flex gap-3 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide px-2">
-                            {product.image_src.map((img, i) => (
+                            {displayImages.map((img, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveImage(i)}
@@ -162,22 +186,39 @@ export default function ProductDetailPage() {
                         {product.name}
                     </h1>
 
+                    {product.has_variations && product.variations.length > 0 && (
+                        <div className="mb-8">
+                            <h4 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 text-center lg:text-left">Select Option</h4>
+                            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                                {product.variations.map((v) => (
+                                    <button
+                                        key={v.id}
+                                        onClick={() => { setSelectedVariation(v); setLocalQty(1); setActiveImage(0); }}
+                                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${selectedVariation?.id === v.id ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-100 text-slate-500 hover:border-blue-300'}`}
+                                    >
+                                        {v.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="flex items-baseline gap-4 mb-8 sm:mb-12 justify-center lg:justify-start">
-                        {product.selling_price !== null ? (
-                            <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">${product.selling_price}</span>
+                        {currentPrice !== null ? (
+                            <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">${currentPrice}</span>
                         ) : (
                             <span className="text-2xl sm:text-3xl font-bold text-blue-600 tracking-tight">Price on Request</span>
                         )}
                     </div>
 
-                    {product.has_dynamic_pricing && product.price_slabs && product.price_slabs.length > 0 && (
+                    {hasDynamic && currentSlabs && currentSlabs.length > 0 && (
                         <div className="mb-8 p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
                                 <Activity size={14} />
                                 Dynamic Pricing Tiers
                             </h4>
                             <div className="grid grid-cols-2 gap-4">
-                                {product.price_slabs.map((slab, index) => (
+                                {currentSlabs.map((slab, index) => (
                                     <div key={index} className="bg-white p-3 rounded-2xl border border-blue-100 flex flex-col">
                                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
                                             {slab.max_qty ? `${slab.min_qty} - ${slab.max_qty} Units` : `${slab.min_qty}+ Units`}
@@ -200,7 +241,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] lg:grid-cols-[160px_1fr] xl:grid-cols-[200px_1fr] gap-4 sm:gap-5">
-                        {product.selling_price !== null ? (
+                        {currentPrice !== null ? (
                             <>
                                 {/* Qty Stepper */}
                                 <div className="bg-slate-50 border border-slate-100 rounded-2xl sm:rounded-[32px] p-1.5 sm:p-2 flex items-center justify-between shadow-sm">
@@ -222,7 +263,7 @@ export default function ProductDetailPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => handleAddToCart(product.id, product.available_stock)}
+                                    onClick={() => handleAddToCart(currentStock || 0)}
                                     disabled={maxCanAdd <= 0}
                                     className={`flex items-center justify-center space-x-3 py-4 sm:py-6 rounded-2xl sm:rounded-[32px] font-bold text-xs sm:text-sm uppercase tracking-widest transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xl ${isAdded ? 'bg-green-600 shadow-green-600/20 text-white animate-in zoom-in-95' : 'bg-blue-600 shadow-blue-600/20 text-white hover:bg-blue-700 hover:-translate-y-1'}`}
                                 >
@@ -247,7 +288,7 @@ export default function ProductDetailPage() {
                                 <Package size={12} className="text-blue-400" />
                                 Inventory
                             </span>
-                            <span className="text-base sm:text-lg font-bold text-slate-900">{product.available_stock <= 0 ? 'Out of Stock' : product.available_stock < 10 ? `Only ${product.available_stock} left` : 'Available'}</span>
+                            <span className="text-base sm:text-lg font-bold text-slate-900">{(currentStock || 0) <= 0 ? 'Out of Stock' : (currentStock || 0) < 10 ? `Only ${currentStock} left` : 'Available'}</span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2 justify-center lg:justify-start">

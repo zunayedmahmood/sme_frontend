@@ -17,9 +17,9 @@ import {
 
 const PLACEHOLDER_IMG = '/stock_image.png';
 
-const CartItemRow = ({ productId, quantity }: { productId: number, quantity: number }) => {
+const CartItemRow = ({ cartKey, quantity }: { cartKey: string, quantity: number }) => {
     const { cartDetails, removeFromCart, updateQuantity } = useCart();
-    const detail = useMemo(() => cartDetails.find(d => d.id === productId), [cartDetails, productId]);
+    const detail = useMemo(() => cartDetails.find(d => d.cart_key === cartKey), [cartDetails, cartKey]);
     const [confirmDelete, setConfirmDelete] = useState(false);
 
     if (!detail) return (
@@ -57,7 +57,7 @@ const CartItemRow = ({ productId, quantity }: { productId: number, quantity: num
                                 Cancel
                             </button>
                             <button
-                                onClick={() => { removeFromCart(productId); setConfirmDelete(false); }}
+                                onClick={() => { removeFromCart(cartKey); setConfirmDelete(false); }}
                                 className="flex-1 py-3.5 bg-red-600 text-white font-bold text-xs rounded-2xl shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all active:scale-95"
                             >
                                 Remove
@@ -93,14 +93,14 @@ const CartItemRow = ({ productId, quantity }: { productId: number, quantity: num
                     <div className="flex items-center justify-between mt-3 sm:mt-4">
                         <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg sm:rounded-xl p-0.5 sm:p-1 gap-1">
                             <button
-                                onClick={() => updateQuantity(productId, quantity - 1, detail.available_stock)}
+                                onClick={() => updateQuantity(cartKey, quantity - 1, detail.available_stock)}
                                 className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-white rounded-md sm:rounded-lg transition-all active:scale-90"
                             >
                                 <Minus size={12} className="sm:w-3.5 sm:h-3.5" />
                             </button>
                             <span className="w-6 sm:w-8 text-center text-xs sm:text-sm font-bold text-slate-900">{quantity}</span>
                             <button
-                                onClick={() => updateQuantity(productId, quantity + 1, detail.available_stock)}
+                                onClick={() => updateQuantity(cartKey, quantity + 1, detail.available_stock)}
                                 className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-white rounded-md sm:rounded-lg transition-all active:scale-90"
                             >
                                 <Plus size={12} className="sm:w-3.5 sm:h-3.5" />
@@ -108,7 +108,9 @@ const CartItemRow = ({ productId, quantity }: { productId: number, quantity: num
                         </div>
                         <div className="text-right">
                             <p className="text-[9px] sm:text-xs font-bold text-slate-400 uppercase tracking-tighter">Subtotal</p>
-                            <p className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">${detail.selling_price * quantity}</p>
+                            <p className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
+                                {detail.selling_price ? `$${(detail.selling_price * quantity).toFixed(2)}` : 'Contact Us'}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -199,10 +201,10 @@ export default function Cart() {
                             </button>
                         </div>
                     ) : (
-                        cartEntries.map(([productId, quantity]) => (
+                        cartEntries.map(([cartKey, quantity]) => (
                             <CartItemRow
-                                key={productId}
-                                productId={parseInt(productId)}
+                                key={cartKey}
+                                cartKey={cartKey}
                                 quantity={quantity}
                             />
                         ))

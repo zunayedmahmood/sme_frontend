@@ -41,13 +41,13 @@ export const getProductById = async (id: number | string) => {
     return response.data;
 };
 
-export const updateForCart = async (data: any) => {
+export const updateForCart = async (data: { items: { product_id: number; variation_id?: number | null; qty: number }[] }) => {
     const response = await api.post('/cart/update', data);
     return response.data;
 };
 
 // Orders
-export const sellProduct = async (products: any[], orderData: any) => {
+export const sellProduct = async (products: { product_id: number; variation_id?: number | null; quantity: number }[], orderData: any) => {
     const response = await api.post('/order/sell', { products, orderData });
     return response.data;
 };

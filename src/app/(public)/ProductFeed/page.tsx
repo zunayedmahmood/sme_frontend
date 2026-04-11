@@ -16,6 +16,7 @@ interface Product {
     total_count: number;
     available_stock: number;
     image_src: string[];
+    has_variations?: boolean;
 }
 
 interface Category {
@@ -187,7 +188,10 @@ export default function ProductFeedPage() {
                         ) : products.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
                                 {products.map(product => {
-                                    const inCartQty = cart[product.id] || 0;
+                                    const inCartQty = Object.entries(cart).reduce((acc, [key, qty]) => {
+                                        if (key.startsWith(`${product.id}-`)) return acc + Number(qty);
+                                        return acc;
+                                    }, 0);
                                     const isJustAdded = addedIds.includes(product.id);
 
                                     return (
@@ -211,12 +215,21 @@ export default function ProductFeedPage() {
                                                     <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 mb-1">{product.name}</h3>
                                                 </Link>
                                                 <div className="flex items-center justify-between mb-6">
-                                                    <p className="text-2xl font-bold text-blue-600">${product.selling_price}</p>
+                                                    <p className="text-2xl font-bold text-blue-600">
+                                                        {product.selling_price !== null ? `$${product.selling_price}` : 'Options Available'}
+                                                    </p>
                                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.sold_count} Sold</span>
                                                 </div>
 
                                                 <div className="mt-auto">
-                                                    {inCartQty > 0 ? (
+                                                    {product.has_variations ? (
+                                                        <Link
+                                                            href={`/product/${product.id}`}
+                                                            className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-600 transition-all active:scale-95 shadow-lg shadow-slate-900/10 hover:shadow-blue-600/20"
+                                                        >
+                                                            Select Options
+                                                        </Link>
+                                                    ) : inCartQty > 0 ? (
                                                         <div className="flex items-center gap-2">
                                                             <div className="flex-1 h-12 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center gap-2">
                                                                 <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">In Cart</span>

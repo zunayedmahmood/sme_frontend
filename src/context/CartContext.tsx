@@ -4,11 +4,13 @@ import React, { createContext, useContext, useEffect, useState, useMemo } from '
 import { updateForCart } from '@/lib/api/api_public';
 
 interface CartItemObject {
-    [productId: number]: number;
+    [cartKey: string]: number;
 }
 
 interface ProductInfo {
     id: number;
+    cart_key: string;
+    variation_id?: number | null;
     name: string;
     selling_price: number;
     image_src: string[];
@@ -20,9 +22,9 @@ interface CartContextType {
     cartDetails: ProductInfo[];
     isCartOpen: boolean;
     setIsCartOpen: (open: boolean) => void;
-    addToCart: (productId: number, availableStock: number, qty?: number) => boolean;
-    removeFromCart: (productId: number) => void;
-    updateQuantity: (productId: number, newQty: number, availableStock: number) => void;
+    addToCart: (productId: number, variationId: number | null, availableStock: number, qty?: number) => boolean;
+    removeFromCart: (cartKey: string) => void;
+    updateQuantity: (cartKey: string, newQty: number, availableStock: number) => void;
     clearCart: () => void;
     cartCount: number;
     subtotal: number;
@@ -46,12 +48,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 const parsed = JSON.parse(stored);
                 // Handle both types: old array-based from previous version or the new object-based
                 if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-                    setCart(parsed);
+                    // Check if it's using old number keys or new cartKey string format
+                    const migratedCart: CartItemObject = {};
+                    Object.entries(parsed).forEach(([key, qty]) => {
+                        if (String(key).indexOf('-') === -1) {
+                            migratedCart[`${key}-null`] = qty as number;
+                        } else {
+                            migratedCart[key] = qty as number;
+                        }
+                    });
+                    setCart(migratedCart);
                 } else if (Array.isArray(parsed)) {
                     // Migrate array-based to object-based if needed
                     const newObj: CartItemObject = {};
                     parsed.forEach((item: any) => {
-                        if (item.productId) newObj[item.productId] = item.quantity;
+                        if (item.productId) newObj[`${item.productId}-null`] = item.quantity;
                     });
                     setCart(newObj);
                 }
@@ -73,9 +84,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }, [cart]);
 
     const subtotal = useMemo(() => {
-        return Object.entries(cart).reduce((acc, [id, qty]) => {
-            const detail = cartDetails.find(d => d.id === parseInt(id));
-            return acc + (detail ? detail.selling_price * qty : 0);
+        return Object.entries(cart).reduce((acc, [cartKey, qty]) => {
+            const detail = cartDetails.find(d => d.cart_key === cartKey);
+            return acc + (detail?.selling_price ? Number(detail.selling_price) * qty : 0);
         }, 0);
     }, [cart, cartDetails]);
 
@@ -90,10 +101,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         try {
             // 1. Validate with updateForCart
             const payload = {
-                items: itemEntries.map(([id, qty]) => ({
-                    product_id: parseInt(id),
-                    qty: qty
-                }))
+                items: itemEntries.map(([cartKey, qty]) => {
+                    const [pId, vId] = cartKey.split('-');
+                    return {
+                        product_id: parseInt(pId),
+                        variation_id: vId !== 'null' ? parseInt(vId) : null,
+                        qty: qty as number
+                    };
+                })
             };
             const validation = await updateForCart(payload);
 
@@ -103,9 +118,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
             validation.items.forEach((vi: any) => {
                 if (vi.qty > 0) {
-                    validatedCart[vi.product_id] = vi.qty;
+                    const cartKey = vi.variation_id ? `${vi.product_id}-${vi.variation_id}` : `${vi.product_id}-null`;
+                    validatedCart[cartKey] = vi.qty;
                     details.push({
                         id: vi.product_id,
+                        cart_key: cartKey,
+                        variation_id: vi.variation_id,
                         name: vi.product_name,
                         selling_price: vi.price,
                         image_src: vi.image_src,
@@ -124,47 +142,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     // Actions
-    const addToCart = (productId: number, availableStock: number, qty = 1): boolean => {
-        const currentQty = cart[productId] || 0;
+    const addToCart = (productId: number, variationId: number | null, availableStock: number, qty = 1): boolean => {
+        const cartKey = variationId ? `${productId}-${variationId}` : `${productId}-null`;
+        const currentQty = cart[cartKey] || 0;
         const maxAllowed = availableStock;
 
         if (currentQty + qty > maxAllowed) return false;
 
         setCart(prev => ({
             ...prev,
-            [productId]: currentQty + qty
+            [cartKey]: currentQty + qty
         }));
         return true;
     };
 
     // Directly removes without confirmation — Cart.tsx handles the confirm modal
-    const removeFromCart = (productId: number) => {
-        setCart(prev => {
+    const removeFromCart = (cartKey: string) => {
+        setCart((prev: CartItemObject) => {
             const newCart = { ...prev };
-            delete newCart[productId];
+            delete newCart[cartKey];
             return newCart;
         });
-        setCartDetails(prev => prev.filter(p => p.id !== productId));
+        setCartDetails((prev: ProductInfo[]) => prev.filter((p: ProductInfo) => p.cart_key !== cartKey));
     };
 
-    const updateQuantity = (productId: number, newQty: number, availableStock: number) => {
+    const updateQuantity = (cartKey: string, newQty: number, availableStock: number) => {
         if (newQty <= 0) {
             // Directly delete — caller is responsible for confirmation if needed
-            setCart(prev => {
+            setCart((prev: CartItemObject) => {
                 const newCart = { ...prev };
-                delete newCart[productId];
+                delete newCart[cartKey];
                 return newCart;
             });
-            setCartDetails(prev => prev.filter(p => p.id !== productId));
+            setCartDetails((prev: ProductInfo[]) => prev.filter((p: ProductInfo) => p.cart_key !== cartKey));
             return;
         }
         const maxAllowed = availableStock;
         if (newQty > maxAllowed) return;
 
-        setCart(prev => {
+        setCart((prev: CartItemObject) => {
             const newCart = {
                 ...prev,
-                [productId]: newQty
+                [cartKey]: newQty
             };
             return newCart;
         });

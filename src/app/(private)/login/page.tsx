@@ -53,7 +53,7 @@ export default function LoginPage() {
                         <Activity size={40} />
                     </div>
                     <div className="flex flex-col items-center">
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">BhugichugiMed</h1>
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">SarengMed</h1>
                         <p className="text-blue-600 text-[10px] font-bold uppercase tracking-[0.3em] bg-blue-50 px-3 py-1 rounded-full mt-2 border border-blue-100">Administrator Vault</p>
                     </div>
                 </div>
