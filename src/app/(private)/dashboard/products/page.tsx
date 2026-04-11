@@ -807,7 +807,7 @@ export default function ProductsPage() {
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-500">
                     <div className="bg-white rounded-[40px] w-full max-w-3xl p-10 max-h-[90vh] overflow-y-auto shadow-3xl animate-in zoom-in-95 duration-500 border border-slate-100 relative">
-                        <button onClick={() => { setIsCreateModalOpen(false); setCreateForm({ name: '', selling_price: '', description: '', categories: [], images: [] }); setImageError(false); }} className="absolute top-8 right-8 p-3 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all">
+                        <button onClick={() => { setIsCreateModalOpen(false); setCreateForm({ name: '', selling_price: '' as string | number, description: '', categories: [], images: [], has_dynamic_pricing: false, price_slabs: [] }); setImageError(false); }} className="absolute top-8 right-8 p-3 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all">
                             <X size={24} />
                         </button>
                         <div className="flex flex-col items-center text-center space-y-4 mb-10 mt-4">
