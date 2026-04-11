@@ -56,6 +56,8 @@ interface Product {
     image_src: string[];
     has_dynamic_pricing: boolean;
     price_slabs: { min_qty: number; max_qty: number | null; price: number }[] | null;
+    has_variations: boolean;
+    variations: any[];
 }
 
 interface PaginationMeta {
@@ -430,10 +432,11 @@ export default function ProductsPage() {
                                                         <div className="space-y-2">
                                                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Selling Price ($)</label>
                                                             <input
+                                                                disabled={editForm?.has_dynamic_pricing}
                                                                 type="number"
-                                                                value={editForm?.selling_price || ''}
+                                                                value={editForm?.has_dynamic_pricing ? '' : (editForm?.selling_price || '')}
                                                                 onChange={(e) => setEditForm({ ...editForm!, selling_price: e.target.value })}
-                                                                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all"
+                                                                className={`w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all ${editForm?.has_dynamic_pricing ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                                                             />
                                                         </div>
                                                         <div className="space-y-2">
@@ -836,12 +839,13 @@ export default function ProductsPage() {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Standard Unit Cost ($)</label>
                                         <input
-                                            required
+                                            disabled={createForm.has_dynamic_pricing}
+                                            required={!createForm.has_dynamic_pricing}
                                             type="number"
-                                            value={createForm.selling_price}
+                                            value={createForm.has_dynamic_pricing ? '' : createForm.selling_price}
                                             onChange={(e) => setCreateForm({ ...createForm, selling_price: e.target.value })}
-                                            placeholder="249.00"
-                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all"
+                                            placeholder={createForm.has_dynamic_pricing ? "Dynamic Pricing Active" : "249.00"}
+                                            className={`w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all ${createForm.has_dynamic_pricing ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                                         />
                                     </div>
                                     <div className="space-y-2">
