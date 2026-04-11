@@ -169,7 +169,7 @@ export default function ProductsPage() {
             
             const newPrice = editForm.selling_price === '' || editForm.selling_price === null ? null : Number(editForm.selling_price);
             const originalPrice = original.selling_price === '' || original.selling_price === null ? null : Number(original.selling_price);
-            if (newPrice !== originalPrice) await updateSellingPrice(editProductId, newPrice as any);
+            if (newPrice !== originalPrice) await updateSellingPrice(editProductId, newPrice);
             
             if (editForm.description !== original.description) await updateProductDescription(editProductId, editForm.description);
             
@@ -251,7 +251,7 @@ export default function ProductsPage() {
         try {
             const formData = new FormData();
             formData.append('name', createForm.name);
-            formData.append('selling_price', createForm.selling_price);
+            formData.append('selling_price', createForm.selling_price.toString());
             formData.append('description', createForm.description);
             formData.append('has_dynamic_pricing', createForm.has_dynamic_pricing ? '1' : '0');
             formData.append('price_slabs', JSON.stringify(createForm.price_slabs));

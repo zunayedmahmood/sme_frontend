@@ -103,7 +103,7 @@ export const updateProductName = async (id: number | string, name: string) => {
     return response.data;
 };
 
-export const updateSellingPrice = async (id: number | string, selling_price: number) => {
+export const updateSellingPrice = async (id: number | string, selling_price: number | null) => {
     const response = await api.patch(`/product/${id}/price`, { selling_price });
     return response.data;
 };
