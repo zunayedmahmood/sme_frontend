@@ -39,6 +39,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const [cartDetails, setCartDetails] = useState<ProductInfo[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+    const cartRef = React.useRef<CartItemObject>(cart);
+
+    // Keep ref in sync
+    useEffect(() => {
+        cartRef.current = cart;
+    }, [cart]);
 
     // Initial load from localStorage
     useEffect(() => {
@@ -92,14 +98,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     // API: Refresh cart info
     const refreshCart = async () => {
-        const itemEntries = Object.entries(cart);
+        const itemEntries = Object.entries(cartRef.current);
         if (itemEntries.length === 0) {
             setCartDetails([]);
             return;
         }
         setLoading(true);
         try {
-            // 1. Validate with updateForCart
             const payload = {
                 items: itemEntries.map(([cartKey, qty]) => {
                     const [pId, vId] = cartKey.split('-');
@@ -112,27 +117,40 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             };
             const validation = await updateForCart(payload);
 
-            // Sync cart with validated quantities/removals
-            const validatedCart: CartItemObject = {};
             const details: ProductInfo[] = [];
-
-            validation.items.forEach((vi: any) => {
-                if (vi.qty > 0) {
+            
+            // Reconcile: Only adjust quantities if the backend says we have LESS than we thought
+            // or if the price changed.
+            setCart(prev => {
+                const updated = { ...prev };
+                validation.items.forEach((vi: any) => {
                     const cartKey = vi.variation_id ? `${vi.product_id}-${vi.variation_id}` : `${vi.product_id}-null`;
-                    validatedCart[cartKey] = vi.qty;
-                    details.push({
-                        id: vi.product_id,
-                        cart_key: cartKey,
-                        variation_id: vi.variation_id,
-                        name: vi.product_name,
-                        selling_price: vi.price,
-                        image_src: vi.image_src,
-                        available_stock: vi.available_stock
-                    });
-                }
-            });
+                    
+                    // If backend says qty is 0 (out of stock), remove it
+                    if (vi.qty <= 0) {
+                        delete updated[cartKey];
+                    } else if (updated[cartKey] !== undefined) {
+                        // If we have more in local state than available_stock, cap it
+                        if (updated[cartKey] > vi.available_stock) {
+                            updated[cartKey] = vi.available_stock;
+                        }
+                    }
 
-            setCart(validatedCart);
+                    if (vi.qty > 0) {
+                        details.push({
+                            id: vi.product_id,
+                            cart_key: cartKey,
+                            variation_id: vi.variation_id,
+                            name: vi.product_name,
+                            selling_price: vi.price,
+                            image_src: vi.image_src,
+                            available_stock: vi.available_stock
+                        });
+                    }
+                });
+                return updated;
+            });
+            
             setCartDetails(details);
         } catch (err) {
             console.error("Failed to refresh cart:", err);
@@ -144,16 +162,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     // Actions
     const addToCart = (productId: number, variationId: number | null, availableStock: number, qty = 1): boolean => {
         const cartKey = variationId ? `${productId}-${variationId}` : `${productId}-null`;
-        const currentQty = cart[cartKey] || 0;
-        const maxAllowed = availableStock;
+        
+        let success = true;
+        setCart(prev => {
+            const currentQty = prev[cartKey] || 0;
+            if (currentQty + qty > availableStock) {
+                success = false;
+                return prev;
+            }
+            return {
+                ...prev,
+                [cartKey]: currentQty + qty
+            };
+        });
 
-        if (currentQty + qty > maxAllowed) return false;
-
-        setCart(prev => ({
-            ...prev,
-            [cartKey]: currentQty + qty
-        }));
-        return true;
+        if (success) {
+            // Trigger background refresh for latest prices/slabs
+            setTimeout(() => refreshCart(), 0);
+        }
+        
+        return success;
     };
 
     // Directly removes without confirmation — Cart.tsx handles the confirm modal
@@ -167,26 +195,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     const updateQuantity = (cartKey: string, newQty: number, availableStock: number) => {
-        if (newQty <= 0) {
-            // Directly delete — caller is responsible for confirmation if needed
-            setCart((prev: CartItemObject) => {
+        setCart((prev: CartItemObject) => {
+            if (newQty <= 0) {
                 const newCart = { ...prev };
                 delete newCart[cartKey];
                 return newCart;
-            });
-            setCartDetails((prev: ProductInfo[]) => prev.filter((p: ProductInfo) => p.cart_key !== cartKey));
-            return;
-        }
-        const maxAllowed = availableStock;
-        if (newQty > maxAllowed) return;
+            }
+            
+            if (newQty > availableStock) return prev;
 
-        setCart((prev: CartItemObject) => {
-            const newCart = {
+            return {
                 ...prev,
                 [cartKey]: newQty
             };
-            return newCart;
         });
+
+        if (newQty <= 0) {
+            setCartDetails((prev: ProductInfo[]) => prev.filter((p: ProductInfo) => p.cart_key !== cartKey));
+        }
 
         // Trigger refresh to get updated dynamic prices
         setTimeout(() => refreshCart(), 0);

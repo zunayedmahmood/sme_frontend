@@ -45,7 +45,7 @@ const ShopTitle: React.FC<ShopTitleProps> = ({ variant }) => {
 
             {/* Subtitle / Tagline — indented to align under the text, past the logo */}
             <p className="text-[8px] sm:text-[9px] uppercase tracking-[0.2em] font-medium text-slate-400 mt-0.5 ml-[40px] sm:ml-[46px]">
-                Medical Equipments Distributor
+                Medical Equipment Distributor
             </p>
         </div>
     );

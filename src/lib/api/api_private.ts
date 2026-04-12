@@ -178,7 +178,7 @@ export const deleteVariation = async (variationId: number | string) => {
 };
 
 // Admin Inventory (Batches)
-export const addInventoryBatch = async (data: { product_id: number; cost_price: number; quantity: number }) => {
+export const addInventoryBatch = async (data: { product_id: number; cost_price: number; quantity: number; variation_id?: number | null }) => {
     const response = await api.post('/inventory/add', data);
     return response.data;
 };

@@ -35,6 +35,11 @@ import {
 
 const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800';
 
+interface Category {
+    id: number;
+    name: string;
+}
+
 interface Variation {
     id: number;
     name: string;
@@ -155,7 +160,7 @@ export default function InventoryPage() {
                 variation_id: newBatch.variation_id ? parseInt(newBatch.variation_id) : undefined,
                 cost_price: parseFloat(newBatch.cost_price),
                 quantity: parseInt(newBatch.quantity)
-            } as any);
+            });
             await fetchProducts(currentPage);
             setAddModalProduct(null);
             setNewBatch({ cost_price: '', quantity: '', variation_id: '' });
