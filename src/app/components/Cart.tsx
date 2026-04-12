@@ -142,7 +142,7 @@ export default function Cart() {
 
     const handleCheckout = () => {
         setIsCartOpen(false);
-        router.push('/Checkout');
+        router.push('/checkout');
     };
 
     const cartEntries = Object.entries(cart);
