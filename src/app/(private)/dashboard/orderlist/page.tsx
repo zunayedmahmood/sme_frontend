@@ -9,7 +9,7 @@ import {
     deleteOrder,
     getAllProductsAdmin
 } from '@/lib/api/api_private';
-import { getDeliveryCharge } from '@/lib/api/api_public';
+import { getGlobalDeliveryCharge } from '@/lib/api/api_public';
 import {
     ChevronDown,
     ChevronLeft,
