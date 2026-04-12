@@ -170,7 +170,7 @@ export default function OrderPage() {
             if (paymentMethod === 'Online' && res.checkout_url) {
                 window.location.href = res.checkout_url;
             } else {
-                router.push(`/order/${res.order.order_id}`);
+                router.push(`/OrderStatus/${res.order.order_id}`);
             }
         } catch (e) {
             console.error(e);

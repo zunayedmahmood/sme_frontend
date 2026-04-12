@@ -200,8 +200,10 @@ export default function OrderDetailsPage() {
                                 <h4 className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4">Delivery Address</h4>
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-sm font-bold text-slate-900 leading-tight mb-1">{order.address?.details}</p>
-                                        <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase tracking-widest">{order.address?.district}, {order.address?.division}</p>
+                                        <p className="text-sm font-bold text-slate-900 leading-tight mb-1">{order.address?.line1}</p>
+                                        <p className="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase tracking-widest">
+                                            {order.address?.suburb}, {order.address?.state} {order.address?.postcode}
+                                        </p>
                                     </div>
                                     <div className="flex items-center gap-3 pt-4 border-t border-slate-50 text-slate-400">
                                         <Truck size={14} />

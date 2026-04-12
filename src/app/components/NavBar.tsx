@@ -37,7 +37,7 @@ const NavBar: React.FC = () => {
     const handleTrack = () => {
         const id = modalOrderId.trim().replace('#', '');
         if (id) {
-            router.push(`/order/${id}`);
+            router.push(`/OrderStatus/${id}`);
             closeModal();
         }
     };
