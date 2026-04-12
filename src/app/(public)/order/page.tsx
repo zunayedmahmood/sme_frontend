@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { updateForCart, getDeliveryCharge, sellProduct } from '@/lib/api/api_public';
+import { updateForCart, getGlobalDeliveryCharge, sellProduct } from '@/lib/api/api_public';
 import { useCart } from '@/context/CartContext';
 import {
     Package,
@@ -31,19 +31,11 @@ interface CartItem {
     maxStockReached: boolean;
 }
 
-interface Division {
-    id: string;
-    name: string;
-}
-
-interface District {
-    id: string;
-    name: string;
-}
-
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PLACEHOLDER_IMG = '/stock_image.png';
+
+const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'];
 
 
 // ─── UI Components ───────────────────────────────────────────────────────────
@@ -86,15 +78,11 @@ export default function OrderPage() {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
 
-    // Address state
-    const [addressDetails, setAddressDetails] = useState('');
-    const [divisions, setDivisions] = useState<Division[]>([]);
-    const [districts, setDistricts] = useState<District[]>([]);
-    const [selectedDivisionId, setSelectedDivisionId] = useState('');
-    const [selectedDivisionName, setSelectedDivisionName] = useState('');
-    const [selectedDistrictId, setSelectedDistrictId] = useState('');
-    const [selectedDistrictName, setSelectedDistrictName] = useState('');
-    const [loadingDistricts, setLoadingDistricts] = useState(false);
+    // Address state (Australia)
+    const [line1, setLine1] = useState('');
+    const [suburb, setSuburb] = useState('');
+    const [state, setState] = useState('');
+    const [postcode, setPostcode] = useState('');
 
     // Delivery state
     const [deliveryCharge, setDeliveryCharge] = useState<number | null>(null);
@@ -126,43 +114,17 @@ export default function OrderPage() {
         })();
     }, []);
 
-    // ── Fetch Divisions ───────────────────────────────────────────────────────
+    // ── Fetch Delivery Charge (Global) ────────────────────────────────────────
     useEffect(() => {
-        fetch('https://bdapi.vercel.app/api/v.1/division')
-            .then(r => r.json())
-            .then(d => setDivisions(d.data || []))
-            .catch(err => console.error("Division fetch error:", err));
-    }, []);
-
-    // ── Fetch Districts ───────────────────────────────────────────────────────
-    useEffect(() => {
-        if (!selectedDivisionId) {
-            setDistricts([]);
-            setSelectedDistrictId('');
-            setSelectedDistrictName('');
-            return;
-        }
-        setLoadingDistricts(true);
-        setSelectedDistrictId('');
-        setSelectedDistrictName('');
-        setDeliveryCharge(null);
-        fetch(`https://bdapi.vercel.app/api/v.1/district/${selectedDivisionId}`)
-            .then(r => r.json())
-            .then(d => setDistricts(d.data || []))
-            .catch(err => console.error("District fetch error:", err))
-            .finally(() => setLoadingDistricts(false));
-    }, [selectedDivisionId]);
-
-    // ── Fetch Delivery Charge ─────────────────────────────────────────────────
-    useEffect(() => {
-        if (!selectedDivisionName || !selectedDistrictName) return;
         setLoadingDelivery(true);
-        setDeliveryCharge(null);
-        getDeliveryCharge(selectedDivisionName, selectedDistrictName)
-            .then(res => setDeliveryCharge(res.delivery_charge ?? null))
-            .catch(err => console.error("Delivery charge error:", err))
+        getGlobalDeliveryCharge()
+            .then(res => setDeliveryCharge(res.delivery_charge ?? 15.00))
+            .catch(err => {
+                console.error("Delivery charge error:", err);
+                setDeliveryCharge(15.00); // Fallback
+            })
             .finally(() => setLoadingDelivery(false));
-    }, [selectedDivisionName, selectedDistrictName]);
+    }, []);
 
     // ── Totals ───────────────────────────────────────────────────────────────
     const subtotal = cartItems.reduce((acc, i) => acc + parseFloat(i.price) * i.qty, 0);
@@ -171,12 +133,13 @@ export default function OrderPage() {
     // ── Validation & Submission ───────────────────────────────────────────────
     const validate = () => {
         const e: Record<string, string> = {};
-        if (!name.trim()) e.name = 'Full name is legally required';
+        if (!name.trim()) e.name = 'Full name is required';
         if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) e.email = 'Valid clinical email required';
-        if (!phone.trim() || phone.length < 11) e.phone = 'Complete phone number required';
-        if (!addressDetails.trim()) e.addressDetails = 'Specific delivery coordinates required';
-        if (!selectedDivisionId) e.division = 'Select division';
-        if (!selectedDistrictId) e.district = 'Select district';
+        if (!phone.trim() || phone.length < 8) e.phone = 'Complete phone number required';
+        if (!line1.trim()) e.line1 = 'Street address is required';
+        if (!suburb.trim()) e.suburb = 'Suburb/City is required';
+        if (!state) e.state = 'Select state';
+        if (!postcode.trim() || postcode.length !== 4) e.postcode = 'Valid 4-digit postcode required';
         if (!paymentMethod) e.payment = 'Select payment protocol';
         if (cartItems.length === 0) e.cart = 'Requisition hub is empty';
         setErrors(e);
@@ -196,11 +159,10 @@ export default function OrderPage() {
                     payment_method: paymentMethod,
                     customer_details: { name, email, phone },
                     address: {
-                        details: addressDetails,
-                        selection: {
-                            division: selectedDivisionName,
-                            district: selectedDistrictName,
-                        },
+                        line1,
+                        suburb,
+                        state,
+                        postcode
                     },
                 }
             );
@@ -323,56 +285,53 @@ export default function OrderPage() {
                             <SectionHeader icon={MapPin} label="Logistics Coordinates" step={3} />
                             <div className="space-y-6">
                                 <div>
-                                    <FieldLabel>Specific Delivery Address</FieldLabel>
-                                    <textarea
-                                        className={`${inputClass} h-32 resize-none pt-4`}
-                                        placeholder="Hospital, Department, Suite, Street..."
-                                        value={addressDetails}
-                                        onChange={e => setAddressDetails(e.target.value)}
+                                    <FieldLabel>Street Address (Line 1)</FieldLabel>
+                                    <input
+                                        className={inputClass}
+                                        placeholder="House # and Street Name"
+                                        value={line1}
+                                        onChange={e => setLine1(e.target.value)}
                                     />
-                                    <FieldError msg={errors.addressDetails} />
+                                    <FieldError msg={errors.line1} />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div>
-                                        <FieldLabel>Division</FieldLabel>
+                                        <FieldLabel>Suburb / City</FieldLabel>
+                                        <input
+                                            className={inputClass}
+                                            placeholder="Enter suburb"
+                                            value={suburb}
+                                            onChange={e => setSuburb(e.target.value)}
+                                        />
+                                        <FieldError msg={errors.suburb} />
+                                    </div>
+                                    <div>
+                                        <FieldLabel>State</FieldLabel>
                                         <div className="relative">
                                             <select
                                                 className={`${inputClass} appearance-none pr-12`}
-                                                value={selectedDivisionId}
-                                                onChange={e => {
-                                                    const div = divisions.find(d => d.id === e.target.value);
-                                                    setSelectedDivisionId(e.target.value);
-                                                    setSelectedDivisionName(div?.name || '');
-                                                }}
+                                                value={state}
+                                                onChange={e => setState(e.target.value)}
                                             >
-                                                <option value="">Select Division</option>
-                                                {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                                <option value="">Select State</option>
+                                                {AUSTRALIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                                             </select>
                                             <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 rotate-0 group-hover:rotate-180 transition-transform"><ChevronDown size={18} /></div>
                                         </div>
-                                        <FieldError msg={errors.division} />
+                                        <FieldError msg={errors.state} />
                                     </div>
-                                    <div>
-                                        <FieldLabel>District</FieldLabel>
-                                        <div className="relative">
-                                            <select
-                                                className={`${inputClass} appearance-none pr-12 disabled:opacity-40 disabled:cursor-not-allowed`}
-                                                value={selectedDistrictId}
-                                                disabled={!selectedDivisionId || loadingDistricts}
-                                                onChange={e => {
-                                                    const dist = districts.find(d => d.id === e.target.value);
-                                                    setSelectedDistrictId(e.target.value);
-                                                    setSelectedDistrictName(dist?.name || '');
-                                                }}
-                                            >
-                                                <option value="">
-                                                    {loadingDistricts ? 'Updating Matrix...' : !selectedDivisionId ? 'Pending Division' : 'Select District'}
-                                                </option>
-                                                {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                            </select>
-                                            <div className="pointer-events-none absolute right-5 top-1/2 -translate-y-1/2 text-slate-400"><ChevronDown size={18} /></div>
-                                        </div>
-                                        <FieldError msg={errors.district} />
+                                    <div className="sm:col-span-2">
+                                        <FieldLabel>Postcode</FieldLabel>
+                                        <input
+                                            className={inputClass}
+                                            type="text"
+                                            pattern="[0-9]*"
+                                            maxLength={4}
+                                            placeholder="e.g. 2000"
+                                            value={postcode}
+                                            onChange={e => setPostcode(e.target.value.replace(/\D/g, ''))}
+                                        />
+                                        <FieldError msg={errors.postcode} />
                                     </div>
                                 </div>
                             </div>

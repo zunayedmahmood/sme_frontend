@@ -66,8 +66,8 @@ export const manualOrderPayment = async (orderId: string) => {
 // export const addTransactionId = async (orderId: string, transactionId: string) => { ... }
 
 // Delivery
-export const getDeliveryCharge = async (division: string, district: string) => {
-    const response = await api.post('/delivery-charge', { division, district });
+export const getGlobalDeliveryCharge = async () => {
+    const response = await api.get('/admin/settings/delivery');
     return response.data;
 };
 

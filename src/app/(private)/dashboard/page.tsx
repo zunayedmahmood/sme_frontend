@@ -20,7 +20,8 @@ import {
     BriefcaseMedical,
     MessageCircleQuestionMark,
     ShoppingBag,
-    Tag
+    Tag,
+    Truck
 } from 'lucide-react';
 import {
     getAllCategories,
@@ -70,6 +71,7 @@ export default function DashboardPage() {
         { title: 'Categories', description: 'Go to categories page', icon: Tag, href: '/dashboard/categories', color: 'bg-indigo-500' },
         { title: 'Inventories', description: 'Controll all stock of all products', icon: Package, href: '/dashboard/inventories', color: 'bg-teal-500' },
         { title: 'Orders', description: 'Verify order logs and history', icon: ClipboardList, href: '/dashboard/orderlist', color: 'bg-slate-700' },
+        { title: 'Logistics', description: 'Configure global delivery charges', icon: Truck, href: '/dashboard/delivery', color: 'bg-amber-500' },
         { title: 'Contact Messages', description: 'Check messages from customers', icon: MessageCircleQuestionMark, href: '/dashboard/contact_messages', color: 'bg-olive-500' },
     ];
 

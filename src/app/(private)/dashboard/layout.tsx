@@ -17,7 +17,8 @@ import {
     Activity,
     Shield,
     MessageSquare,
-    MessageCircleQuestionMark
+    MessageCircleQuestionMark,
+    Truck
 } from 'lucide-react';
 
 interface SidebarItemProps {
@@ -63,6 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Categories', href: '/dashboard/categories', icon: Tag },
         { name: 'Stock Reservoir', href: '/dashboard/inventories', icon: Package },
         { name: 'Order Registry', href: '/dashboard/orderlist', icon: ClipboardList },
+        { name: 'Delivery Settings', href: '/dashboard/delivery', icon: Truck },
         { name: 'Correspondence Logs', href: '/dashboard/contact_messages', icon: MessageCircleQuestionMark },
     ];
 

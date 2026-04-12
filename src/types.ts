@@ -1,3 +1,10 @@
+export interface Address {
+    line1: string;
+    suburb: string;
+    state: string;
+    postcode: string;
+}
+
 export interface Variation {
     id: number;
     product_id: number;

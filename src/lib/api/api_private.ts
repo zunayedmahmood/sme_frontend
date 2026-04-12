@@ -228,3 +228,7 @@ export const updateStripeIds = async (data: {
     const response = await api.patch('/order/stripe-id', data);
     return response.data;
 };
+export const updateGlobalDeliveryCharge = async (charge: number) => {
+    const response = await api.post('/admin/settings/delivery', { delivery_charge: charge });
+    return response.data;
+};

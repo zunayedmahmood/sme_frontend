@@ -63,11 +63,10 @@ interface Order {
         phone: string;
     };
     address: {
-        details: string;
-        selection: {
-            division: string;
-            district: string;
-        };
+        line1: string;
+        suburb: string;
+        state: string;
+        postcode: string;
     };
     stripe_id?: string | null;
     stripe_id_record?: StripeIdRecord | null;
@@ -80,15 +79,7 @@ interface Product {
     selling_price: string;
 }
 
-interface Division {
-    id: string;
-    name: string;
-}
-
-interface District {
-    id: string;
-    name: string;
-}
+const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'];
 
 interface PaginationMeta {
     current_page: number;
@@ -176,8 +167,8 @@ export default function OrderListPage() {
         payment_status: 'Unpaid',
         ordered_products: [],
         customer_details: { name: '', email: '', phone: '' },
-        address: { details: '', selection: { division: '', district: '' } },
-        delivery_charge: '0',
+        address: { line1: '', suburb: '', state: '', postcode: '' },
+        delivery_charge: '15.00',
         stripe_checkout_session_id: '',
         stripe_payment_intent_id: ''
     });
@@ -188,10 +179,7 @@ export default function OrderListPage() {
     // Validation errors for create modal
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-    // Helpers for address fetching
-    const [divisions, setDivisions] = useState<Division[]>([]);
-    const [districts, setDistricts] = useState<District[]>([]);
-    const [loadingDistricts, setLoadingDistricts] = useState(false);
+    // Helpers for address fetching (Removed Bangladesh API helpers)
 
     useEffect(() => {
         fetchOrders(currentPage);
@@ -220,28 +208,16 @@ export default function OrderListPage() {
 
     const fetchCoreData = async () => {
         try {
-            const [prods, divs] = await Promise.all([
-                getAllProductsAdmin(),
-                fetch('https://bdapi.vercel.app/api/v.1/division').then(r => r.json())
+            const [prods] = await Promise.all([
+                getAllProductsAdmin()
             ]);
             setAllProducts(prods.data || prods);
-            setDivisions(divs.data || []);
         } catch (err) {
             console.error('Failed to load core data', err);
         }
     };
 
-    const fetchDistricts = async (divisionId: string) => {
-        setLoadingDistricts(true);
-        try {
-            const res = await fetch(`https://bdapi.vercel.app/api/v.1/district/${divisionId}`).then(r => r.json());
-            setDistricts(res.data || []);
-        } catch (err) {
-            console.error('Failed to load districts', err);
-        } finally {
-            setLoadingDistricts(false);
-        }
-    };
+    // Fetch Districts helper removed
 
     // Calculate Totals
     const orderTotals = useMemo(() => {
@@ -250,18 +226,14 @@ export default function OrderListPage() {
         return { subtotal, total };
     }, [formData.ordered_products, formData.delivery_charge]);
 
-    // Handle Delivery Charge Sync
+    // Handle Delivery Charge Sync (Global)
     useEffect(() => {
-        const division = formData.address?.selection.division;
-        const district = formData.address?.selection.district;
-        if (division && district) {
-            getDeliveryCharge(division, district).then(res => {
-                if (res.success) {
-                    setFormData(prev => ({ ...prev, delivery_charge: res.delivery_charge.toString() }));
-                }
+        if (isCreateModalOpen) {
+            getGlobalDeliveryCharge().then(res => {
+                setFormData(prev => ({ ...prev, delivery_charge: res.delivery_charge.toString() }));
             });
         }
-    }, [formData.address?.selection.division, formData.address?.selection.district]);
+    }, [isCreateModalOpen]);
 
     const handleAddItem = (productId: string) => {
         const product = allProducts.find(p => p.id === parseInt(productId));
@@ -307,9 +279,10 @@ export default function OrderListPage() {
         if (!formData.customer_details?.name?.trim()) errors.name = 'Full name is required.';
         if (!formData.customer_details?.email?.trim()) errors.email = 'Email is required.';
         if (!formData.customer_details?.phone?.trim()) errors.phone = 'Phone number is required.';
-        if (!formData.address?.selection?.division) errors.division = 'Division is required.';
-        if (!formData.address?.selection?.district) errors.district = 'District is required.';
-        if (!formData.address?.details?.trim()) errors.address_details = 'Address details are required.';
+        if (!formData.address?.line1?.trim()) errors.line1 = 'Street address is required.';
+        if (!formData.address?.suburb?.trim()) errors.suburb = 'Suburb is required.';
+        if (!formData.address?.state) errors.state = 'State is required.';
+        if (!formData.address?.postcode?.trim() || formData.address?.postcode?.length !== 4) errors.postcode = 'Valid 4-digit postcode required.';
 
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
@@ -335,8 +308,8 @@ export default function OrderListPage() {
                     payment_status: 'Unpaid',
                     ordered_products: [],
                     customer_details: { name: '', email: '', phone: '' },
-                    address: { details: '', selection: { division: '', district: '' } },
-                    delivery_charge: '0',
+                    address: { line1: '', suburb: '', state: '', postcode: '' },
+                    delivery_charge: '15.00',
                     stripe_checkout_session_id: '',
                     stripe_payment_intent_id: ''
                 });
@@ -393,8 +366,7 @@ export default function OrderListPage() {
             stripe_checkout_session_id: order.stripe_id_record?.stripe_checkout_session_id || '',
             stripe_payment_intent_id: order.stripe_id_record?.stripe_payment_intent_id || ''
         });
-        const division = divisions.find(d => d.name === order.address.selection.division);
-        if (division) fetchDistricts(division.id);
+        const division = formData.address?.state; // Simplified for Australian transition
     };
 
     return (
@@ -572,9 +544,9 @@ export default function OrderListPage() {
                                                                 </Select>
                                                             </div>
                                                         )}
-                                                        <div className="p-4 bg-blue-50/30 flex justify-between items-center">
-                                                            <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest">Subtotal</span>
-                                                            <span className="font-bold text-blue-600">${(isEditing ? orderTotals.subtotal : parseFloat(order.total_price) - parseFloat(order.delivery_charge)).toLocaleString()}</span>
+                                                        <div className="p-4 bg-blue-50/30 flex justify-between items-center text-blue-600 font-bold">
+                                                            <span className="text-[9px] uppercase tracking-widest">Subtotal</span>
+                                                            <span>${(isEditing ? orderTotals.subtotal : parseFloat(order.total_price) - parseFloat(order.delivery_charge)).toLocaleString()}</span>
                                                         </div>
                                                     </div>
 
@@ -646,40 +618,23 @@ export default function OrderListPage() {
                                                             Logistics Coordinates
                                                         </h4>
                                                         {isEditing ? (
-                                                            <div className="space-y-3">
-                                                                <div className="flex gap-3">
-                                                                    <Select
-                                                                        value={divisions.find(d => d.name === formData.address?.selection.division)?.id || ''}
-                                                                        onChange={(e: any) => {
-                                                                            const div = divisions.find(d => d.id === e.target.value);
-                                                                            setFormData(prev => ({ ...prev, address: { ...prev.address!, selection: { ...prev.address!.selection, division: div?.name || '', district: '' } } }));
-                                                                            if (div) fetchDistricts(div.id);
-                                                                        }}
-                                                                    >
-                                                                        <option value="">Division</option>
-                                                                        {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                                                    </Select>
-                                                                    <Select
-                                                                        disabled={loadingDistricts}
-                                                                        value={formData.address?.selection.district}
-                                                                        onChange={(e: any) => setFormData(prev => ({ ...prev, address: { ...prev.address!, selection: { ...prev.address!.selection, district: e.target.value } } }))}
-                                                                    >
-                                                                        <option value="">{loadingDistricts ? 'Wait...' : 'District'}</option>
-                                                                        {districts.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                                                            <div className="space-y-4">
+                                                                <Input label="Street (Line 1)" value={formData.address?.line1} error={formErrors.line1} onChange={(e: any) => setFormData(prev => ({ ...prev, address: { ...prev.address!, line1: e.target.value } }))} />
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <Input label="Suburb" value={formData.address?.suburb} error={formErrors.suburb} onChange={(e: any) => setFormData(prev => ({ ...prev, address: { ...prev.address!, suburb: e.target.value } }))} />
+                                                                    <Select label="State" value={formData.address?.state} error={formErrors.state} onChange={(e: any) => setFormData(prev => ({ ...prev, address: { ...prev.address!, state: e.target.value } }))}>
+                                                                        <option value="">State</option>
+                                                                        {AUSTRALIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                                                                     </Select>
                                                                 </div>
-                                                                <textarea
-                                                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:bg-white focus:border-blue-500 ring-blue-500 transition-all resize-none h-20"
-                                                                    value={formData.address?.details}
-                                                                    onChange={(e) => setFormData(prev => ({ ...prev, address: { ...prev.address!, details: e.target.value } }))}
-                                                                />
+                                                                <Input label="Postcode" maxLength={4} value={formData.address?.postcode} error={formErrors.postcode} onChange={(e: any) => setFormData(prev => ({ ...prev, address: { ...prev.address!, postcode: e.target.value.replace(/\D/g, '') } }))} />
                                                             </div>
                                                         ) : (
                                                             <div className="p-5 bg-slate-50 border border-slate-100 rounded-2xl relative">
-                                                                <p className="text-xs text-slate-600 leading-relaxed italic">"{order.address.details}"</p>
-                                                                <div className="mt-4 flex items-center gap-2">
-                                                                    <span className="text-[10px] font-black text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{order.address.selection.district}</span>
-                                                                    <span className="text-[10px] font-black text-slate-400 uppercase">{order.address.selection.division}</span>
+                                                                <p className="text-xs font-bold text-slate-800">{order.address.line1}</p>
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <span className="text-[10px] font-black text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-100">{order.address.suburb}</span>
+                                                                    <span className="text-[10px] font-black text-slate-400 uppercase">{order.address.state} {order.address.postcode}</span>
                                                                 </div>
                                                             </div>
                                                         )}
@@ -913,40 +868,41 @@ export default function OrderListPage() {
                                 <div className="space-y-6">
                                     <h4 className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                                         <MapPin size={14} className="text-blue-600" />
-                                        Delivery Coordinates
+                                        Logistics Coordinates
                                     </h4>
-                                    <div className="space-y-5">
+                                    <div className="space-y-4">
+                                        <Input
+                                            label="Address Line 1"
+                                            placeholder="Street and House Number"
+                                            error={formErrors.line1}
+                                            value={formData.address?.line1}
+                                            onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, line1: e.target.value } })); setFormErrors(prev => ({ ...prev, line1: '' })); }}
+                                        />
                                         <div className="grid grid-cols-2 gap-5">
+                                            <Input
+                                                label="Suburb / City"
+                                                placeholder="Enter Suburb"
+                                                error={formErrors.suburb}
+                                                value={formData.address?.suburb}
+                                                onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, suburb: e.target.value } })); setFormErrors(prev => ({ ...prev, suburb: '' })); }}
+                                            />
                                             <Select
-                                                label="Division"
-                                                error={formErrors.division}
-                                                onChange={(e: any) => {
-                                                    const div = divisions.find(d => d.id === e.target.value);
-                                                    setFormData(prev => ({ ...prev, address: { ...prev.address!, selection: { division: div?.name || '', district: '' } } }));
-                                                    if (div) fetchDistricts(div.id);
-                                                    setFormErrors(prev => ({ ...prev, division: '' }));
-                                                }}
+                                                label="State"
+                                                error={formErrors.state}
+                                                value={formData.address?.state}
+                                                onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, state: e.target.value } })); setFormErrors(prev => ({ ...prev, state: '' })); }}
                                             >
-                                                <option value="">Select Division</option>
-                                                {divisions.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                                            </Select>
-                                            <Select
-                                                label="District"
-                                                error={formErrors.district}
-                                                disabled={!formData.address?.selection.division || loadingDistricts}
-                                                value={formData.address?.selection.district}
-                                                onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, selection: { ...prev.address!.selection, district: e.target.value } } })); setFormErrors(prev => ({ ...prev, district: '' })); }}
-                                            >
-                                                <option value="">{loadingDistricts ? 'Synchronizing...' : 'Select District'}</option>
-                                                {districts.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+                                                <option value="">Select State</option>
+                                                {AUSTRALIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                                             </Select>
                                         </div>
                                         <Input
-                                            label="Specific Address Details"
-                                            placeholder="Floor, Wing, Room Number, Street Address..."
-                                            error={formErrors.address_details}
-                                            value={formData.address?.details}
-                                            onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, details: e.target.value } })); setFormErrors(prev => ({ ...prev, address_details: '' })); }}
+                                            label="Postcode"
+                                            placeholder="e.g. 2000"
+                                            maxLength={4}
+                                            error={formErrors.postcode}
+                                            value={formData.address?.postcode}
+                                            onChange={(e: any) => { setFormData(prev => ({ ...prev, address: { ...prev.address!, postcode: e.target.value.replace(/\D/g, '') } })); setFormErrors(prev => ({ ...prev, postcode: '' })); }}
                                         />
                                     </div>
                                 </div>
