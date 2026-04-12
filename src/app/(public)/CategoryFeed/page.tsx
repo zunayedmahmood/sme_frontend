@@ -13,8 +13,10 @@ interface Product {
     id: number;
     name: string;
     image_src: string[];
-    has_variations?: boolean;
+    has_variations: boolean;
     available_stock: number;
+    selling_price: number | null;
+    sold_count: number;
 }
 
 interface Category {
