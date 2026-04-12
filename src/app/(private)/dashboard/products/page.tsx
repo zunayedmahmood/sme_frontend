@@ -127,8 +127,16 @@ export default function ProductsPage() {
         try {
             const newValue = !product.has_variations;
             await updateHasVariations(product.id, newValue);
-            setProducts(products.map(p => p.id === product.id ? { ...p, has_variations: newValue } : p));
-            if (editForm && editForm.id === product.id) setEditForm({ ...editForm, has_variations: newValue });
+            
+            // If enabling variations, automatically disable product-level dynamic pricing
+            const updatedProduct = { 
+                ...product, 
+                has_variations: newValue,
+                ...(newValue ? { has_dynamic_pricing: false, price_slabs: [] } : {})
+            };
+
+            setProducts(products.map(p => p.id === product.id ? updatedProduct : p));
+            if (editForm && editForm.id === product.id) setEditForm(updatedProduct);
         } catch (err) {
             alert('Variation toggle failure.');
         } finally {
@@ -258,7 +266,7 @@ export default function ProductsPage() {
             if (editForm.description !== original.description) await updateProductDescription(editProductId, editForm.description);
             
             if (editForm.has_dynamic_pricing !== original.has_dynamic_pricing || JSON.stringify(editForm.price_slabs) !== JSON.stringify(original.price_slabs)) {
-                await updateDynamicPricing(editProductId, editForm.has_dynamic_pricing, editForm.price_slabs);
+                await updateDynamicPricing(editProductId, editForm.has_dynamic_pricing, editForm.price_slabs || []);
             }
 
             // Variation updates
@@ -274,7 +282,7 @@ export default function ProductsPage() {
                                 name: v.name,
                                 selling_price: v.selling_price === '' ? null : v.selling_price,
                                 has_dynamic_pricing: v.has_dynamic_pricing,
-                                price_slabs: v.price_slabs
+                                price_slabs: v.price_slabs || []
                             });
                         }
                     }
@@ -358,7 +366,7 @@ export default function ProductsPage() {
             formData.append('selling_price', createForm.selling_price.toString());
             formData.append('description', createForm.description);
             formData.append('has_dynamic_pricing', createForm.has_dynamic_pricing ? '1' : '0');
-            formData.append('price_slabs', JSON.stringify(createForm.price_slabs));
+            formData.append('price_slabs', JSON.stringify(createForm.price_slabs || []));
             formData.append('has_variations', createForm.has_variations ? '1' : '0');
             createForm.categories.forEach(id => formData.append('categories_id[]', id.toString()));
             createForm.images.forEach(file => formData.append('image_src[]', file));
@@ -374,8 +382,12 @@ export default function ProductsPage() {
     };
 
 
-    const addPriceSlab = (isEdit: boolean, variationIdx?: number) => {
+    const addPriceSlab = (isEdit: boolean, variationIdx?: number, isNewVariation: boolean = false) => {
         const newSlab = { min_qty: 1, max_qty: null as number | null, price: 0 };
+        if (isNewVariation) {
+            setVariationForm({ ...variationForm, price_slabs: [...variationForm.price_slabs, newSlab] });
+            return;
+        }
         if (isEdit) {
             if (variationIdx !== undefined) {
                 const newVariations = [...(editForm?.variations || [])];
@@ -389,7 +401,13 @@ export default function ProductsPage() {
         }
     };
 
-    const removePriceSlab = (isEdit: boolean, index: number, variationIdx?: number) => {
+    const removePriceSlab = (isEdit: boolean, index: number, variationIdx?: number, isNewVariation: boolean = false) => {
+        if (isNewVariation) {
+            const newSlabs = [...variationForm.price_slabs];
+            newSlabs.splice(index, 1);
+            setVariationForm({ ...variationForm, price_slabs: newSlabs });
+            return;
+        }
         if (isEdit) {
             if (variationIdx !== undefined) {
                 const newVariations = [...(editForm?.variations || [])];
@@ -409,7 +427,13 @@ export default function ProductsPage() {
         }
     };
 
-    const updatePriceSlab = (isEdit: boolean, index: number, field: string, value: any, variationIdx?: number) => {
+    const updatePriceSlab = (isEdit: boolean, index: number, field: string, value: any, variationIdx?: number, isNewVariation: boolean = false) => {
+        if (isNewVariation) {
+            const newSlabs = [...variationForm.price_slabs];
+            (newSlabs[index] as any)[field] = value;
+            setVariationForm({ ...variationForm, price_slabs: newSlabs });
+            return;
+        }
         if (isEdit) {
             if (variationIdx !== undefined) {
                 const newVariations = [...(editForm?.variations || [])];
@@ -741,6 +765,60 @@ export default function ProductsPage() {
                                                                                         className="block w-full text-[10px] text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100"
                                                                                     />
                                                                                 </div>
+
+                                                                                {/* New: Dynamic Pricing for Variations */}
+                                                                                <div className="pt-2 space-y-3">
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <label className="text-[9px] font-bold text-slate-400">DYNAMIC PRICING</label>
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={() => setVariationForm({ ...variationForm, has_dynamic_pricing: !variationForm.has_dynamic_pricing })}
+                                                                                            className={`px-3 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${variationForm.has_dynamic_pricing ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}
+                                                                                        >
+                                                                                            {variationForm.has_dynamic_pricing ? 'ON' : 'OFF'}
+                                                                                        </button>
+                                                                                    </div>
+
+                                                                                    {variationForm.has_dynamic_pricing && (
+                                                                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                                                            {variationForm.price_slabs.map((slab, sIdx) => (
+                                                                                                <div key={sIdx} className="flex gap-2 items-end bg-slate-50/50 p-2 rounded-lg border border-slate-100">
+                                                                                                    <input
+                                                                                                        type="number"
+                                                                                                        value={slab.min_qty}
+                                                                                                        onChange={(e) => updatePriceSlab(false, sIdx, 'min_qty', parseInt(e.target.value), undefined, true)}
+                                                                                                        className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
+                                                                                                        placeholder="Min"
+                                                                                                    />
+                                                                                                    <input
+                                                                                                        type="number"
+                                                                                                        value={slab.max_qty || ''}
+                                                                                                        onChange={(e) => updatePriceSlab(false, sIdx, 'max_qty', e.target.value ? parseInt(e.target.value) : null, undefined, true)}
+                                                                                                        className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
+                                                                                                        placeholder="Max"
+                                                                                                    />
+                                                                                                    <input
+                                                                                                        type="number"
+                                                                                                        value={slab.price}
+                                                                                                        onChange={(e) => updatePriceSlab(false, sIdx, 'price', parseFloat(e.target.value), undefined, true)}
+                                                                                                        className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
+                                                                                                        placeholder="$"
+                                                                                                    />
+                                                                                                    <button onClick={() => removePriceSlab(false, sIdx, undefined, true)} className="text-red-400 p-1.5 hover:text-red-600 transition-colors">
+                                                                                                        <X size={14} />
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                            <button 
+                                                                                                type="button"
+                                                                                                onClick={() => addPriceSlab(false, undefined, true)}
+                                                                                                className="w-full py-2 border border-dashed border-indigo-200 rounded-lg text-[9px] font-bold text-indigo-400 hover:bg-white transition-all uppercase flex items-center justify-center gap-1.5"
+                                                                                            >
+                                                                                                <Plus size={12}/> add price slab
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
                                                                             </div>
                                                                             <div className="flex gap-2 pt-2">
                                                                                 <button onClick={() => setIsAddingVariationId(null)} className="flex-1 py-2.5 text-[10px] font-bold text-slate-400 hover:text-slate-600">Abort</button>
@@ -760,11 +838,24 @@ export default function ProductsPage() {
                                                         ) : (
                                                             <div className="space-y-4 pt-4">
                                                                 <div className="flex items-center justify-between">
-                                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dynamic Pricing Slabs</label>
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dynamic Pricing Slabs</label>
+                                                                        {editForm?.has_variations && (
+                                                                            <p className="text-[9px] text-amber-600 font-bold uppercase tracking-tight ml-1 animate-pulse">Unavailable: Variations active</p>
+                                                                        )}
+                                                                    </div>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => setEditForm({ ...editForm!, has_dynamic_pricing: !editForm?.has_dynamic_pricing })}
-                                                                        className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${editForm?.has_dynamic_pricing ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'}`}
+                                                                        onClick={() => {
+                                                                            const newDynamicValue = !editForm?.has_dynamic_pricing;
+                                                                            setEditForm({ 
+                                                                                ...editForm!, 
+                                                                                has_dynamic_pricing: newDynamicValue,
+                                                                                // If enabling dynamic pricing, disable variations
+                                                                                ...(newDynamicValue ? { has_variations: false } : {})
+                                                                            });
+                                                                        }}
+                                                                        className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${editForm?.has_dynamic_pricing ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400 font-medium'}`}
                                                                     >
                                                                         {editForm?.has_dynamic_pricing ? 'ENABLED' : 'DISABLED'}
                                                                     </button>
@@ -1163,11 +1254,24 @@ export default function ProductsPage() {
                                     </div>
                                     <div className="space-y-4 pt-4 border-t border-slate-100">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dynamic Pricing Slabs</label>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Dynamic Pricing Slabs</label>
+                                                {createForm.has_variations && (
+                                                    <p className="text-[9px] text-amber-600 font-bold uppercase tracking-tight ml-1 animate-pulse">Unavailable: Variations active</p>
+                                                )}
+                                            </div>
                                             <button
                                                 type="button"
-                                                onClick={() => setCreateForm({ ...createForm, has_dynamic_pricing: !createForm.has_dynamic_pricing })}
-                                                className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${createForm.has_dynamic_pricing ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'}`}
+                                                onClick={() => {
+                                                    const newValue = !createForm.has_dynamic_pricing;
+                                                    setCreateForm({ 
+                                                        ...createForm, 
+                                                        has_dynamic_pricing: newValue,
+                                                        // If enabling dynamic pricing, disable variations
+                                                        ...(newValue ? { has_variations: false } : {})
+                                                    });
+                                                }}
+                                                className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${createForm.has_dynamic_pricing ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400 font-medium'}`}
                                             >
                                                 {createForm.has_dynamic_pricing ? 'ENABLED' : 'DISABLED'}
                                             </button>
@@ -1180,8 +1284,16 @@ export default function ProductsPage() {
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => setCreateForm({ ...createForm, has_variations: !createForm.has_variations })}
-                                                className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${createForm.has_variations ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-100 text-slate-400'}`}
+                                                onClick={() => {
+                                                    const newValue = !createForm.has_variations;
+                                                    setCreateForm({ 
+                                                        ...createForm, 
+                                                        has_variations: newValue,
+                                                        // If enabling variations, disable price slabs and clear them
+                                                        ...(newValue ? { has_dynamic_pricing: false, price_slabs: [] } : {})
+                                                    });
+                                                }}
+                                                className={`px-4 py-1.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all ${createForm.has_variations ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-100 text-slate-400 font-medium'}`}
                                             >
                                                 {createForm.has_variations ? 'VARIATIONS ENABLED' : 'SINGLE PRODUCT'}
                                             </button>
