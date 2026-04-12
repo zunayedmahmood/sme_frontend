@@ -35,7 +35,7 @@ import {
 
 const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800';
 
-interface Category {
+interface Variation {
     id: number;
     name: string;
 }
@@ -45,6 +45,8 @@ interface ProductBatch {
     count: number;
     cost_price: string | number;
     created_at: string;
+    variation_id: number | null;
+    variation?: Variation;
 }
 
 interface Product {
@@ -58,6 +60,8 @@ interface Product {
     available_stock: number;
     image_src: string[];
     product_batches: ProductBatch[];
+    has_variations: boolean;
+    variations: Variation[];
 }
 
 interface PaginationMeta {
@@ -82,7 +86,7 @@ export default function InventoryPage() {
     const [deleteBatchRequest, setDeleteBatchRequest] = useState<{ product: Product, batch: ProductBatch } | null>(null);
     const [removeQtyRequest, setRemoveQtyRequest] = useState<{ product: Product, batch: ProductBatch, qty: number } | null>(null);
 
-    const [newBatch, setNewBatch] = useState({ cost_price: '', quantity: '' });
+    const [newBatch, setNewBatch] = useState({ cost_price: '', quantity: '', variation_id: '' });
     const [removeQtyInput, setRemoveQtyInput] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
     const [errorModal, setErrorModal] = useState<string | null>(null);
@@ -138,16 +142,23 @@ export default function InventoryPage() {
     const handleAddBatch = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!addModalProduct || !newBatch.cost_price || !newBatch.quantity) return;
+        
+        if (addModalProduct.has_variations && !newBatch.variation_id) {
+            alert('Please select a variation for this product.');
+            return;
+        }
+
         setActionLoading(true);
         try {
             await addInventoryBatch({
                 product_id: addModalProduct.id,
+                variation_id: newBatch.variation_id ? parseInt(newBatch.variation_id) : undefined,
                 cost_price: parseFloat(newBatch.cost_price),
                 quantity: parseInt(newBatch.quantity)
-            });
+            } as any);
             await fetchProducts(currentPage);
             setAddModalProduct(null);
-            setNewBatch({ cost_price: '', quantity: '' });
+            setNewBatch({ cost_price: '', quantity: '', variation_id: '' });
         } catch (err) {
             alert('Batch injection failure.');
         } finally {
@@ -300,6 +311,9 @@ export default function InventoryPage() {
                                                             <div>
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="text-xs font-bold text-slate-900 uppercase">Batch #{batch.id}</span>
+                                                                    {batch.variation && (
+                                                                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-bold uppercase">{batch.variation.name}</span>
+                                                                    )}
                                                                     <span className="text-[10px] text-slate-400 font-medium">Logged: {new Date(batch.created_at).toLocaleDateString()}</span>
                                                                 </div>
                                                                 <p className="text-sm font-bold text-slate-500 mt-1 italic">${batch.cost_price} <span className="text-[10px] uppercase font-bold text-slate-300 ml-1">Cost Price</span></p>
@@ -488,6 +502,22 @@ export default function InventoryPage() {
                         </div>
 
                         <form onSubmit={handleAddBatch} className="space-y-6">
+                            {addModalProduct.has_variations && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Variation</label>
+                                    <select
+                                        required
+                                        value={newBatch.variation_id}
+                                        onChange={(e) => setNewBatch({ ...newBatch, variation_id: e.target.value })}
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-blue-500 transition-all font-bold text-sm h-[60px]"
+                                    >
+                                        <option value="">Choose configuration...</option>
+                                        {(addModalProduct.variations || []).map(v => (
+                                            <option key={v.id} value={v.id}>{v.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Unit Cost ($)</label>
                                 <input

@@ -12,10 +12,9 @@ const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1583337130417-3346a1b
 interface Product {
     id: number;
     name: string;
-    selling_price: string | number;
-    sold_count: number;
-    total_count: number;
     image_src: string[];
+    has_variations?: boolean;
+    available_stock: number;
 }
 
 interface Category {
@@ -195,7 +194,10 @@ function CategoryFeedContent() {
                 ) : filteredProducts.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredProducts.map(product => {
-                            const inCartQty = cart[product.id] || 0;
+                            const inCartQty = Object.entries(cart).reduce((acc, [key, qty]) => {
+                                if (key.startsWith(`${product.id}-`)) return acc + Number(qty);
+                                return acc;
+                            }, 0);
                             const isJustAdded = addedIds.includes(product.id);
 
                             return (
@@ -206,7 +208,7 @@ function CategoryFeedContent() {
                                             alt={product.name}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
-                                        {product.total_count <= 0 && (
+                                        {product.available_stock <= 0 && (
                                             <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">Out of Stock</div>
                                         )}
                                     </Link>
@@ -216,18 +218,38 @@ function CategoryFeedContent() {
                                             <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 mb-1">{product.name}</h3>
                                         </Link>
                                         <div className="flex items-center justify-between mb-4">
-                                            <p className="text-xl font-bold text-blue-600">${product.selling_price}</p>
+                                            <p className="text-xl font-bold text-blue-600">
+                                                {product.has_variations 
+                                                    ? 'Options Available' 
+                                                    : (product.selling_price !== null 
+                                                        ? `$${product.selling_price}` 
+                                                        : 'Price on Request')}
+                                            </p>
                                             <span className="text-[10px] font-bold text-slate-400">Sold: {product.sold_count}</span>
                                         </div>
 
                                         <div className="mt-auto">
-                                            {inCartQty > 0 ? (
+                                            {product.has_variations ? (
+                                                <Link
+                                                    href={`/product/${product.id}`}
+                                                    className="w-full py-2.5 bg-slate-900 border border-slate-800 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-600 hover:border-blue-500 transition-all active:scale-95 shadow-lg shadow-slate-900/10 hover:shadow-blue-600/20"
+                                                >
+                                                    Select Configuration
+                                                </Link>
+                                            ) : product.selling_price === null ? (
+                                                <Link
+                                                    href={`/product/${product.id}`}
+                                                    className="w-full py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-900 hover:text-white transition-all active:scale-95 shadow-sm"
+                                                >
+                                                    Inquire Price
+                                                </Link>
+                                            ) : inCartQty > 0 ? (
                                                 <div className="flex items-center gap-2">
                                                     <div className="flex-1 h-11 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-center gap-2">
                                                         <span className="text-[10px] font-bold text-blue-400 font-mono italic">UNIT-{inCartQty}</span>
                                                     </div>
                                                     <button
-                                                        onClick={() => handleAddToCart(product.id, product.total_count)}
+                                                        onClick={() => handleAddToCart(product.id, product.available_stock)}
                                                         className={`w-11 h-11 rounded-lg flex items-center justify-center transition-all active:scale-90 ${isJustAdded ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
                                                     >
                                                         {isJustAdded ? <Check className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
@@ -235,8 +257,8 @@ function CategoryFeedContent() {
                                                 </div>
                                             ) : (
                                                 <button
-                                                    onClick={() => handleAddToCart(product.id, product.total_count)}
-                                                    disabled={product.total_count <= 0}
+                                                    onClick={() => handleAddToCart(product.id, product.available_stock)}
+                                                    disabled={product.available_stock <= 0}
                                                     className="w-full py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-40 disabled:grayscale shadow-sm"
                                                 >
                                                     <Plus className="w-4 h-4" />

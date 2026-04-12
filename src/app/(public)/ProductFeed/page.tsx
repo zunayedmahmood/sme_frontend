@@ -17,6 +17,7 @@ interface Product {
     available_stock: number;
     image_src: string[];
     has_variations?: boolean;
+    has_dynamic_pricing?: boolean;
 }
 
 interface Category {
@@ -216,7 +217,11 @@ export default function ProductFeedPage() {
                                                 </Link>
                                                 <div className="flex items-center justify-between mb-6">
                                                     <p className="text-2xl font-bold text-blue-600">
-                                                        {product.selling_price !== null ? `$${product.selling_price}` : 'Options Available'}
+                                                        {product.has_variations 
+                                                            ? 'Options Available' 
+                                                            : (product.selling_price !== null 
+                                                                ? `$${product.selling_price}` 
+                                                                : 'Price on Request')}
                                                     </p>
                                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.sold_count} Sold</span>
                                                 </div>
@@ -225,15 +230,22 @@ export default function ProductFeedPage() {
                                                     {product.has_variations ? (
                                                         <Link
                                                             href={`/product/${product.id}`}
-                                                            className="w-full py-3.5 bg-slate-900 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-600 transition-all active:scale-95 shadow-lg shadow-slate-900/10 hover:shadow-blue-600/20"
+                                                            className="w-full py-3.5 bg-slate-900 border border-slate-800 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-600 hover:border-blue-500 transition-all active:scale-95 shadow-lg shadow-slate-900/10 hover:shadow-blue-600/20"
                                                         >
-                                                            Select Options
+                                                            Select Configuration
+                                                        </Link>
+                                                    ) : product.selling_price === null ? (
+                                                        <Link
+                                                            href={`/product/${product.id}`}
+                                                            className="w-full py-3.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-900 hover:text-white transition-all active:scale-95 shadow-sm"
+                                                        >
+                                                            Medical Inquiry
                                                         </Link>
                                                     ) : inCartQty > 0 ? (
                                                         <div className="flex items-center gap-2">
                                                             <div className="flex-1 h-12 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center gap-2">
-                                                                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">In Cart</span>
-                                                                <span className="text-sm font-bold text-blue-600">{inCartQty}</span>
+                                                                 <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">In Cart</span>
+                                                                 <span className="text-sm font-bold text-blue-600">{inCartQty}</span>
                                                             </div>
                                                             <button
                                                                 onClick={() => handleAddToCart(product.id, product.available_stock)}

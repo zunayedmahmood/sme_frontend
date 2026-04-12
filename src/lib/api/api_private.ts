@@ -152,6 +152,31 @@ export const updateTotalCountManual = async (id: number | string) => {
     return response.data;
 };
 
+// Admin Variations
+export const updateHasVariations = async (id: number | string, has_variations: boolean) => {
+    const response = await api.patch(`/product/${id}/has-variations`, { has_variations });
+    return response.data;
+};
+
+export const createVariation = async (productId: number | string, formData: FormData) => {
+    const response = await api.post(`/product/${productId}/variation`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+export const updateVariation = async (variationId: number | string, data: any) => {
+    const response = await api.patch(`/variation/${variationId}`, data);
+    return response.data;
+};
+
+export const deleteVariation = async (variationId: number | string) => {
+    const response = await api.delete(`/variation/${variationId}`);
+    return response.data;
+};
+
 // Admin Inventory (Batches)
 export const addInventoryBatch = async (data: { product_id: number; cost_price: number; quantity: number }) => {
     const response = await api.post('/inventory/add', data);
