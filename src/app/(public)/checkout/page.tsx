@@ -408,7 +408,7 @@ export default function OrderPage() {
 
                             <button
                                 onClick={handleSubmit}
-                                disabled={submitting || loadingCart || cartItems.length === 0}
+                                disabled={submitting || loadingCart || cartDetails.length === 0}
                                 className="w-full py-5 sm:py-6 bg-blue-600 text-white font-bold text-xs sm:text-sm uppercase tracking-[0.2em] rounded-[24px] shadow-2xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 active:translate-y-0 disabled:opacity-30 disabled:translate-y-0 transition-all duration-300 flex items-center justify-center gap-3 group"
                             >
                                 {submitting ? (
