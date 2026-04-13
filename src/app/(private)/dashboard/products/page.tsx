@@ -52,8 +52,6 @@ interface Variation {
     id: number;
     name: string;
     selling_price: string | number | null;
-    has_dynamic_pricing: boolean;
-    price_slabs: { min_qty: number; max_qty: number | null; price: number }[] | null;
     image_src: string[] | null;
     total_count: number;
     available_stock: number;
@@ -117,8 +115,6 @@ export default function ProductsPage() {
     const [variationForm, setVariationForm] = useState({
         name: '',
         selling_price: '' as string | number,
-        has_dynamic_pricing: false,
-        price_slabs: [] as { min_qty: number; max_qty: number | null; price: number }[],
         images: [] as File[]
     });
 
@@ -154,8 +150,6 @@ export default function ProductsPage() {
             const formData = new FormData();
             formData.append('name', variationForm.name);
             formData.append('selling_price', variationForm.selling_price.toString());
-            formData.append('has_dynamic_pricing', variationForm.has_dynamic_pricing ? '1' : '0');
-            formData.append('price_slabs', JSON.stringify(variationForm.price_slabs));
             variationForm.images.forEach(f => formData.append('images[]', f));
 
             const resp = await createVariation(productId, formData);
@@ -165,7 +159,7 @@ export default function ProductsPage() {
             if (editForm && editForm.id === productId) setEditForm({ ...editForm, variations: [...(editForm.variations || []), newVariation] });
             
             setIsAddingVariationId(null);
-            setVariationForm({ name: '', selling_price: '', has_dynamic_pricing: false, price_slabs: [], images: [] });
+            setVariationForm({ name: '', selling_price: '', images: [] });
         } catch (err) {
             alert('Variation registration failure.');
         } finally {
@@ -382,44 +376,20 @@ export default function ProductsPage() {
     };
 
 
-    const addPriceSlab = (isEdit: boolean, variationIdx?: number, isNewVariation: boolean = false) => {
+    const addPriceSlab = (isEdit: boolean) => {
         const newSlab = { min_qty: 1, max_qty: null as number | null, price: 0 };
-        if (isNewVariation) {
-            setVariationForm({ ...variationForm, price_slabs: [...variationForm.price_slabs, newSlab] });
-            return;
-        }
         if (isEdit) {
-            if (variationIdx !== undefined) {
-                const newVariations = [...(editForm?.variations || [])];
-                newVariations[variationIdx].price_slabs = [...(newVariations[variationIdx].price_slabs || []), newSlab];
-                setEditForm({ ...editForm!, variations: newVariations });
-            } else {
-                setEditForm({ ...editForm!, price_slabs: [...(editForm?.price_slabs || []), newSlab] });
-            }
+            setEditForm({ ...editForm!, price_slabs: [...(editForm?.price_slabs || []), newSlab] });
         } else {
             setCreateForm({ ...createForm, price_slabs: [...createForm.price_slabs, newSlab] });
         }
     };
 
-    const removePriceSlab = (isEdit: boolean, index: number, variationIdx?: number, isNewVariation: boolean = false) => {
-        if (isNewVariation) {
-            const newSlabs = [...variationForm.price_slabs];
-            newSlabs.splice(index, 1);
-            setVariationForm({ ...variationForm, price_slabs: newSlabs });
-            return;
-        }
+    const removePriceSlab = (isEdit: boolean, index: number) => {
         if (isEdit) {
-            if (variationIdx !== undefined) {
-                const newVariations = [...(editForm?.variations || [])];
-                const newSlabs = [...(newVariations[variationIdx].price_slabs || [])];
-                newSlabs.splice(index, 1);
-                newVariations[variationIdx].price_slabs = newSlabs;
-                setEditForm({ ...editForm!, variations: newVariations });
-            } else {
-                const newSlabs = [...(editForm?.price_slabs || [])];
-                newSlabs.splice(index, 1);
-                setEditForm({ ...editForm!, price_slabs: newSlabs });
-            }
+            const newSlabs = [...(editForm?.price_slabs || [])];
+            newSlabs.splice(index, 1);
+            setEditForm({ ...editForm!, price_slabs: newSlabs });
         } else {
             const newSlabs = [...createForm.price_slabs];
             newSlabs.splice(index, 1);
@@ -427,25 +397,11 @@ export default function ProductsPage() {
         }
     };
 
-    const updatePriceSlab = (isEdit: boolean, index: number, field: string, value: any, variationIdx?: number, isNewVariation: boolean = false) => {
-        if (isNewVariation) {
-            const newSlabs = [...variationForm.price_slabs];
-            (newSlabs[index] as any)[field] = value;
-            setVariationForm({ ...variationForm, price_slabs: newSlabs });
-            return;
-        }
+    const updatePriceSlab = (isEdit: boolean, index: number, field: string, value: any) => {
         if (isEdit) {
-            if (variationIdx !== undefined) {
-                const newVariations = [...(editForm?.variations || [])];
-                const newSlabs = [...(newVariations[variationIdx].price_slabs || [])];
-                (newSlabs[index] as any)[field] = value;
-                newVariations[variationIdx].price_slabs = newSlabs;
-                setEditForm({ ...editForm!, variations: newVariations });
-            } else {
-                const newSlabs = [...(editForm?.price_slabs || [])];
-                (newSlabs[index] as any)[field] = value;
-                setEditForm({ ...editForm!, price_slabs: newSlabs });
-            }
+            const newSlabs = [...(editForm?.price_slabs || [])];
+            (newSlabs[index] as any)[field] = value;
+            setEditForm({ ...editForm!, price_slabs: newSlabs });
         } else {
             const newSlabs = [...createForm.price_slabs];
             (newSlabs[index] as any)[field] = value;
@@ -661,76 +617,20 @@ export default function ProductsPage() {
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="p-4 space-y-4">
-                                                                                <div className="flex items-center justify-between">
-                                                                                    <label className="text-[9px] font-bold text-slate-400">DYNAMIC PRICING</label>
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => {
+                                                                                <div className="space-y-1">
+                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Base Price ($)</label>
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        value={v.selling_price || ''}
+                                                                                        onChange={(e) => {
                                                                                             const newVariations = [...editForm.variations];
-                                                                                            newVariations[vIdx].has_dynamic_pricing = !newVariations[vIdx].has_dynamic_pricing;
+                                                                                            newVariations[vIdx].selling_price = e.target.value;
                                                                                             setEditForm({ ...editForm, variations: newVariations });
                                                                                         }}
-                                                                                        className={`px-3 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${v.has_dynamic_pricing ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}
-                                                                                    >
-                                                                                        {v.has_dynamic_pricing ? 'ON' : 'OFF'}
-                                                                                    </button>
+                                                                                        placeholder="Price on Request"
+                                                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all"
+                                                                                    />
                                                                                 </div>
-
-                                                                                {!v.has_dynamic_pricing && (
-                                                                                    <div className="space-y-1">
-                                                                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Base Price ($)</label>
-                                                                                        <input
-                                                                                            type="number"
-                                                                                            value={v.selling_price || ''}
-                                                                                            onChange={(e) => {
-                                                                                                const newVariations = [...editForm.variations];
-                                                                                                newVariations[vIdx].selling_price = e.target.value;
-                                                                                                setEditForm({ ...editForm, variations: newVariations });
-                                                                                            }}
-                                                                                            placeholder="Price on Request"
-                                                                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all"
-                                                                                        />
-                                                                                    </div>
-                                                                                )}
-
-                                                                                {v.has_dynamic_pricing && (
-                                                                                    <div className="space-y-2">
-                                                                                        {(v.price_slabs || []).map((slab, sIdx) => (
-                                                                                            <div key={sIdx} className="flex gap-2 items-end bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                                                                                <input
-                                                                                                    type="number"
-                                                                                                    value={slab.min_qty}
-                                                                                                    onChange={(e) => updatePriceSlab(true, sIdx, 'min_qty', parseInt(e.target.value), vIdx)}
-                                                                                                    className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
-                                                                                                    placeholder="Min"
-                                                                                                />
-                                                                                                <input
-                                                                                                    type="number"
-                                                                                                    value={slab.max_qty || ''}
-                                                                                                    onChange={(e) => updatePriceSlab(true, sIdx, 'max_qty', e.target.value ? parseInt(e.target.value) : null, vIdx)}
-                                                                                                    className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
-                                                                                                    placeholder="Max"
-                                                                                                />
-                                                                                                <input
-                                                                                                    type="number"
-                                                                                                    value={slab.price}
-                                                                                                    onChange={(e) => updatePriceSlab(true, sIdx, 'price', parseFloat(e.target.value), vIdx)}
-                                                                                                    className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
-                                                                                                    placeholder="$"
-                                                                                                />
-                                                                                                <button onClick={() => removePriceSlab(true, sIdx, vIdx)} className="text-red-400 p-1.5"><X size={14}/></button>
-                                                                                            </div>
-                                                                                        ))}
-                                                                                        <button 
-                                                                                            onClick={() => addPriceSlab(true, vIdx)}
-                                                                                            className="w-full py-2 border border-dashed border-indigo-200 rounded-lg text-[9px] font-bold text-indigo-400 hover:bg-white transition-all uppercase"
-                                                                                        >
-                                                                                            + Add Price Slab
-                                                                                        </button>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
                                                                         </div>
                                                                     ))}
 
@@ -766,59 +666,7 @@ export default function ProductsPage() {
                                                                                     />
                                                                                 </div>
 
-                                                                                {/* New: Dynamic Pricing for Variations */}
-                                                                                <div className="pt-2 space-y-3">
-                                                                                    <div className="flex items-center justify-between">
-                                                                                        <label className="text-[9px] font-bold text-slate-400">DYNAMIC PRICING</label>
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={() => setVariationForm({ ...variationForm, has_dynamic_pricing: !variationForm.has_dynamic_pricing })}
-                                                                                            className={`px-3 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${variationForm.has_dynamic_pricing ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}
-                                                                                        >
-                                                                                            {variationForm.has_dynamic_pricing ? 'ON' : 'OFF'}
-                                                                                        </button>
-                                                                                    </div>
 
-                                                                                    {variationForm.has_dynamic_pricing && (
-                                                                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                                                                                            {variationForm.price_slabs.map((slab, sIdx) => (
-                                                                                                <div key={sIdx} className="flex gap-2 items-end bg-slate-50/50 p-2 rounded-lg border border-slate-100">
-                                                                                                    <input
-                                                                                                        type="number"
-                                                                                                        value={slab.min_qty}
-                                                                                                        onChange={(e) => updatePriceSlab(false, sIdx, 'min_qty', parseInt(e.target.value), undefined, true)}
-                                                                                                        className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
-                                                                                                        placeholder="Min"
-                                                                                                    />
-                                                                                                    <input
-                                                                                                        type="number"
-                                                                                                        value={slab.max_qty || ''}
-                                                                                                        onChange={(e) => updatePriceSlab(false, sIdx, 'max_qty', e.target.value ? parseInt(e.target.value) : null, undefined, true)}
-                                                                                                        className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
-                                                                                                        placeholder="Max"
-                                                                                                    />
-                                                                                                    <input
-                                                                                                        type="number"
-                                                                                                        value={slab.price}
-                                                                                                        onChange={(e) => updatePriceSlab(false, sIdx, 'price', parseFloat(e.target.value), undefined, true)}
-                                                                                                        className="flex-1 px-2 py-1.5 bg-white border border-slate-200 rounded text-[10px] font-bold"
-                                                                                                        placeholder="$"
-                                                                                                    />
-                                                                                                    <button onClick={() => removePriceSlab(false, sIdx, undefined, true)} className="text-red-400 p-1.5 hover:text-red-600 transition-colors">
-                                                                                                        <X size={14} />
-                                                                                                    </button>
-                                                                                                </div>
-                                                                                            ))}
-                                                                                            <button 
-                                                                                                type="button"
-                                                                                                onClick={() => addPriceSlab(false, undefined, true)}
-                                                                                                className="w-full py-2 border border-dashed border-indigo-200 rounded-lg text-[9px] font-bold text-indigo-400 hover:bg-white transition-all uppercase flex items-center justify-center gap-1.5"
-                                                                                            >
-                                                                                                <Plus size={12}/> add price slab
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
                                                                             </div>
                                                                             <div className="flex gap-2 pt-2">
                                                                                 <button onClick={() => setIsAddingVariationId(null)} className="flex-1 py-2.5 text-[10px] font-bold text-slate-400 hover:text-slate-600">Abort</button>

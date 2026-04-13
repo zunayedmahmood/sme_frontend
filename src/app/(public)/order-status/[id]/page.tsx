@@ -108,7 +108,7 @@ export default function OrderDetailsPage() {
                 </div>
                 <div className="text-center">
                     <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">Order Not Found</h2>
-                    <p className="text-slate-500 font-medium text-sm">The requested signature {id} does not exist in our database.</p>
+                    <p className="text-slate-500 font-medium text-sm">The requested order {id} could not be found.</p>
                 </div>
                 <Link href="/" className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">
                     Return to Catalog

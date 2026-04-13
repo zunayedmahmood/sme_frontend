@@ -317,9 +317,11 @@ export default function InventoryPage() {
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="text-xs font-bold text-slate-900 uppercase">Batch #{batch.id}</span>
                                                                     {batch.variation && (
-                                                                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-[9px] font-bold uppercase">{batch.variation.name}</span>
+                                                                        <span className="px-2.5 py-0.5 bg-blue-100/50 text-blue-700 border border-blue-200/50 rounded-full text-[9px] font-black uppercase tracking-tighter">
+                                                                            {batch.variation.name}
+                                                                        </span>
                                                                     )}
-                                                                    <span className="text-[10px] text-slate-400 font-medium">Logged: {new Date(batch.created_at).toLocaleDateString()}</span>
+                                                                    <span className="text-[10px] text-slate-400 font-medium ml-1">Logged: {new Date(batch.created_at).toLocaleDateString()}</span>
                                                                 </div>
                                                                 <p className="text-sm font-bold text-slate-500 mt-1 italic">${batch.cost_price} <span className="text-[10px] uppercase font-bold text-slate-300 ml-1">Cost Price</span></p>
                                                             </div>
@@ -394,7 +396,9 @@ export default function InventoryPage() {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <p className="text-[9px] font-bold text-slate-400 uppercase">Selling Price</p>
-                                                    <p className="text-xl font-bold text-slate-900">${product.selling_price}</p>
+                                                    <p className="text-xl font-bold text-slate-900">
+                                                        {product.has_variations ? 'Various' : `$${product.selling_price}`}
+                                                    </p>
                                                 </div>
                                                 <div className="space-y-1">
                                                     <p className="text-[9px] font-bold text-slate-400 uppercase">Total Stock</p>
@@ -404,7 +408,30 @@ export default function InventoryPage() {
                                                     <p className="text-[9px] font-bold text-amber-500 uppercase">Reserved</p>
                                                     <p className="text-xl font-bold text-amber-500">{product.total_count - product.available_stock}</p>
                                                 </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[9px] font-bold text-green-500 uppercase">Available</p>
+                                                    <p className="text-xl font-bold text-green-500">{product.available_stock}</p>
+                                                </div>
                                             </div>
+
+                                            {product.has_variations && product.variations.length > 0 && (
+                                                <div className="mt-6 pt-6 border-t border-slate-50 space-y-3">
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <Layers size={10} className="text-indigo-400" />
+                                                        Variation Breakdown
+                                                    </p>
+                                                    <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1">
+                                                        {product.variations.map(v => (
+                                                            <div key={v.id} className="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                                                                <span className="text-xs font-bold text-slate-700">{v.name}</span>
+                                                                <span className="text-xs font-mono font-bold bg-white px-2 py-0.5 rounded shadow-sm text-blue-600">
+                                                                    {(v as any).available_stock} <span className="text-[9px] text-slate-300">/ {(v as any).total_count}</span>
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div className="mt-8 pt-8 border-t border-slate-50">
                                                 <p className="text-[9px] font-bold text-slate-400 uppercase mb-3 flex items-center gap-1">
                                                     <FileText size={10} />
