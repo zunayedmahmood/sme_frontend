@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateForCart, getGlobalDeliveryCharge, sellProduct } from '@/lib/api/api_public';
 import { useCart } from '@/context/CartContext';
@@ -23,12 +23,12 @@ import Link from 'next/link';
 
 interface CartItem {
     product_id: number;
+    variation_id: number | null;
     qty: number;
     price: string;
     product_name: string;
     image_src: string[];
-    total_count: number;
-    maxStockReached: boolean;
+    available_stock: number;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -66,12 +66,7 @@ const inputClass = "w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded
 
 export default function OrderPage() {
     const router = useRouter();
-    const { clearCart } = useCart();
-
-    // Cart state
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
-    const [loadingCart, setLoadingCart] = useState(true);
-    const [someRemoved, setSomeRemoved] = useState(false);
+    const { clearCart, cartDetails, loading: loadingCart } = useCart();
 
     // Customer state
     const [name, setName] = useState('');
@@ -94,25 +89,7 @@ export default function OrderPage() {
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     // ── Pre-fetch Cart ────────────────────────────────────────────────────────
-    useEffect(() => {
-        (async () => {
-            setLoadingCart(true);
-            try {
-                const raw = localStorage.getItem('cart');
-                if (!raw) { setLoadingCart(false); return; }
-                const parsed: Record<string, number> = JSON.parse(raw);
-                const items = Object.entries(parsed).map(([id, qty]) => ({ product_id: parseInt(id), qty }));
-                if (!items.length) { setLoadingCart(false); return; }
-                const res = await updateForCart({ items });
-                setCartItems((res.items as CartItem[]).filter(i => i.qty > 0));
-                if (res.someProductRemoved) setSomeRemoved(true);
-            } catch (e) {
-                console.error("Cart validation error:", e);
-            } finally {
-                setLoadingCart(false);
-            }
-        })();
-    }, []);
+    // Now handled by useCart context automatically
 
     // ── Fetch Delivery Charge (Global) ────────────────────────────────────────
     useEffect(() => {
@@ -127,7 +104,15 @@ export default function OrderPage() {
     }, []);
 
     // ── Totals ───────────────────────────────────────────────────────────────
-    const subtotal = cartItems.reduce((acc, i) => acc + parseFloat(i.price) * i.qty, 0);
+    const subtotal = useMemo(() => {
+        const raw = typeof window !== 'undefined' ? localStorage.getItem('cart') : null;
+        const cartMap: Record<string, number> = raw ? JSON.parse(raw) : {};
+        return cartDetails.reduce((acc, i) => {
+            const qty = cartMap[i.cart_key] || 0;
+            return acc + (Number(i.selling_price) * qty);
+        }, 0);
+    }, [cartDetails]);
+
     const total = deliveryCharge !== null ? subtotal + deliveryCharge : null;
 
     // ── Validation & Submission ───────────────────────────────────────────────
@@ -141,7 +126,7 @@ export default function OrderPage() {
         if (!state) e.state = 'Select state';
         if (!postcode.trim() || postcode.length !== 4) e.postcode = 'Valid 4-digit postcode required';
         if (!paymentMethod) e.payment = 'Select payment protocol';
-        if (cartItems.length === 0) e.cart = 'Requisition hub is empty';
+        if (cartDetails.length === 0) e.cart = 'Requisition hub is empty';
         setErrors(e);
         return Object.keys(e).length === 0;
     };
@@ -150,11 +135,18 @@ export default function OrderPage() {
         if (!validate()) return;
         setSubmitting(true);
         try {
+            // Re-fetch cart keys to map accurately
+            const raw = localStorage.getItem('cart');
+            const cartMap: Record<string, number> = raw ? JSON.parse(raw) : {};
+
+            const productsPayload = cartDetails.map(d => ({
+                product_id: d.id,
+                variation_id: d.variation_id || null,
+                quantity: cartMap[d.cart_key] || 0
+            }));
+
             const res = await sellProduct(
-                cartItems.map(i => ({
-                    product_id: i.product_id,
-                    quantity: i.qty,
-                })),
+                productsPayload,
                 {
                     payment_method: paymentMethod,
                     customer_details: { name, email, phone },
@@ -225,34 +217,35 @@ export default function OrderPage() {
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
-                                        {someRemoved && (
-                                            <div className="flex items-start gap-4 p-5 bg-amber-50 border border-amber-100 rounded-3xl text-amber-700 animate-in fade-in slide-in-from-top-2">
-                                                <AlertCircle size={20} className="flex-shrink-0 mt-0.5" />
-                                                <div>
-                                                    <p className="text-sm font-bold tracking-tight">Stock Discrepancy Detected</p>
-                                                    <p className="text-xs font-medium opacity-80 mt-1">Some items were adjusted due to real-time supply availability.</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {cartItems.map(item => (
-                                            <div key={item.product_id} className="flex items-center gap-4 sm:gap-6 p-4 bg-slate-50/50 border border-transparent hover:border-blue-100 hover:bg-white rounded-[28px] transition-all group">
+                                        {cartDetails.map(item => {
+                                             // Get qty from local storage directly as it's the source of truth for counts
+                                             const raw = typeof window !== 'undefined' ? localStorage.getItem('cart') : null;
+                                             const cartMap: Record<string, number> = raw ? JSON.parse(raw) : {};
+                                             const qty = cartMap[item.cart_key] || 0;
+
+                                             return (
+                                            <div key={item.cart_key} className="flex items-center gap-4 sm:gap-6 p-4 bg-slate-50/50 border border-transparent hover:border-blue-100 hover:bg-white rounded-[28px] transition-all group">
                                                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-white border border-slate-100 flex-shrink-0">
-                                                    <img src={item.image_src?.[0] || PLACEHOLDER_IMG} alt={item.product_name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    <img src={item.image_src?.[0] || PLACEHOLDER_IMG} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm sm:text-base font-bold text-slate-900 truncate tracking-tight">{item.product_name}</p>
+                                                    <p className="text-sm sm:text-base font-bold text-slate-900 truncate tracking-tight">{item.name}</p>
+                                                    {item.variation_id && (
+                                                        <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">Variation Selected</p>
+                                                    )}
                                                     <div className="flex items-center gap-2 sm:gap-3 mt-1.5">
                                                         <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 bg-slate-100 px-2 sm:px-3 py-1 rounded-full uppercase tracking-widest">
-                                                            Qty: {item.qty}
+                                                            Qty: {qty}
                                                         </span>
-                                                        <span className="text-[10px] sm:text-xs font-bold text-blue-600">${item.price} / unit</span>
+                                                        <span className="text-[10px] sm:text-xs font-bold text-blue-600">${item.selling_price} / unit</span>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-base sm:text-lg font-bold text-slate-900 tracking-tighter">${(parseFloat(item.price) * item.qty).toLocaleString()}</p>
+                                                    <p className="text-base sm:text-lg font-bold text-slate-900 tracking-tighter">${(Number(item.selling_price) * qty).toLocaleString()}</p>
                                                 </div>
                                             </div>
-                                        ))}
+                                             );
+                                        })}
                                     </div>
                                 )}
                             </div>
