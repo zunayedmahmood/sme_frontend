@@ -107,7 +107,8 @@ export default function ProductsPage() {
         images: [] as File[],
         has_dynamic_pricing: false,
         price_slabs: [] as { min_qty: number; max_qty: number | null; price: number }[],
-        has_variations: false
+        has_variations: false,
+        variations: [] as { name: string; selling_price: string | number; images: File[] }[]
     });
     const [imageError, setImageError] = useState(false);
 
@@ -358,11 +359,37 @@ export default function ProductsPage() {
             formData.append('has_dynamic_pricing', createForm.has_dynamic_pricing ? '1' : '0');
             formData.append('price_slabs', JSON.stringify(createForm.price_slabs || []));
             formData.append('has_variations', createForm.has_variations ? '1' : '0');
+            
+            // Serialize variations metadata (excluding files)
+            const variationsMeta = createForm.variations.map(v => ({
+                name: v.name,
+                selling_price: v.selling_price
+            }));
+            formData.append('variations', JSON.stringify(variationsMeta));
+
+            // Append variation images with indexed keys
+            createForm.variations.forEach((v, vIdx) => {
+                v.images.forEach(file => {
+                    formData.append(`variation_images_${vIdx}[]`, file);
+                });
+            });
+
             createForm.categories.forEach(id => formData.append('categories_id[]', id.toString()));
             createForm.images.forEach(file => formData.append('image_src[]', file));
+            
             await createProduct(formData);
             fetchProducts(1);
-            setCreateForm({ name: '', selling_price: '' as string | number, description: '', categories: [], images: [], has_dynamic_pricing: false, price_slabs: [], has_variations: false });
+            setCreateForm({ 
+                name: '', 
+                selling_price: '' as string | number, 
+                description: '', 
+                categories: [], 
+                images: [], 
+                has_dynamic_pricing: false, 
+                price_slabs: [], 
+                has_variations: false,
+                variations: []
+            });
             setIsCreateModalOpen(false);
         } catch (err) {
             alert('New product registration failed.');
@@ -832,7 +859,7 @@ export default function ProductsPage() {
                                     ) : (
                                         <div className="space-y-10 animate-in fade-in duration-500">
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                                <div className="space-y-8">
+                                                <div className="space-y-6">
                                                     <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
                                                         <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                                                             <FileText size={12} />
@@ -842,6 +869,59 @@ export default function ProductsPage() {
                                                             {product.description || 'Global inventory record without additional metadata.'}
                                                         </p>
                                                     </div>
+
+                                                    {product.has_variations && product.variations.length > 0 && (
+                                                        <div className="p-6 bg-indigo-50/30 rounded-2xl border border-indigo-100">
+                                                            <h4 className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                                <Activity size={12} />
+                                                                Product Specifications / Variations
+                                                            </h4>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
+                                                                {product.variations.map(v => (
+                                                                    <div key={v.id} className="flex items-center gap-3 p-3 bg-white border border-indigo-50 rounded-xl shadow-sm">
+                                                                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-50 border border-slate-100 flex-shrink-0">
+                                                                            <img src={v.image_src?.[0] || product.image_src?.[0] || PLACEHOLDER_IMG} className="w-full h-full object-cover" />
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-xs font-bold text-slate-800 truncate">{v.name}</p>
+                                                                            <p className="text-[10px] font-bold text-indigo-500">${v.selling_price}</p>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <p className="text-[10px] font-bold text-slate-400 uppercase leading-none">Stock</p>
+                                                                            <p className="text-xs font-bold text-slate-900">{v.available_stock} Units</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {product.has_dynamic_pricing && product.price_slabs && product.price_slabs.length > 0 && (
+                                                        <div className="p-6 bg-blue-50/30 rounded-2xl border border-blue-100">
+                                                            <h4 className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                                <FileText size={12} />
+                                                                Bulk Requisition Pricing (Slabs)
+                                                            </h4>
+                                                            <div className="space-y-2">
+                                                                {product.price_slabs.map((slab, sIdx) => (
+                                                                    <div key={sIdx} className="flex items-center justify-between p-3 bg-white border border-blue-50 rounded-xl shadow-sm px-5">
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Volume Range</span>
+                                                                            <span className="text-[11px] font-bold text-slate-800">
+                                                                                {slab.min_qty}{slab.max_qty ? ` - ${slab.max_qty}` : '+'} Units
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="h-4 w-px bg-blue-100" />
+                                                                        <div className="flex flex-col items-end">
+                                                                            <span className="text-[9px] font-bold text-blue-400 uppercase tracking-tighter">Clinical Rate</span>
+                                                                            <span className="text-sm font-black text-blue-600">${slab.price}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
                                                             <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Sold Units</p>
@@ -1048,7 +1128,7 @@ export default function ProductsPage() {
             {isCreateModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-500">
                     <div className="bg-white rounded-[40px] w-full max-w-3xl p-10 max-h-[90vh] overflow-y-auto shadow-3xl animate-in zoom-in-95 duration-500 border border-slate-100 relative">
-                        <button onClick={() => { setIsCreateModalOpen(false); setCreateForm({ name: '', selling_price: '' as string | number, description: '', categories: [], images: [], has_dynamic_pricing: false, price_slabs: [], has_variations: false }); setImageError(false); }} className="absolute top-8 right-8 p-3 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all">
+                        <button onClick={() => { setIsCreateModalOpen(false); setCreateForm({ name: '', selling_price: '' as string | number, description: '', categories: [], images: [], has_dynamic_pricing: false, price_slabs: [], has_variations: false, variations: [] }); setImageError(false); }} className="absolute top-8 right-8 p-3 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-all">
                             <X size={24} />
                         </button>
                         <div className="flex flex-col items-center text-center space-y-4 mb-10 mt-4">
@@ -1191,6 +1271,101 @@ export default function ProductsPage() {
                                                 >
                                                     <Plus size={14} />
                                                     ADD PRICE SLAB
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {createForm.has_variations && (
+                                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 bg-indigo-50/30 p-4 rounded-2xl border border-indigo-100">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest ml-1">Define Item Variations</label>
+                                                </div>
+                                                
+                                                {/* SCROLLABLE VARIATIONS LIST */}
+                                                <div className="max-h-[280px] overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-indigo-200">
+                                                    {createForm.variations.map((v, vIdx) => (
+                                                        <div key={vIdx} className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm space-y-3 relative group/var">
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => setCreateForm({ ...createForm, variations: createForm.variations.filter((_, i) => i !== vIdx) })}
+                                                                className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover/var:opacity-100"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                            
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Variation Name</label>
+                                                                    <input 
+                                                                        type="text"
+                                                                        value={v.name}
+                                                                        placeholder="e.g. Size XL / 500mg"
+                                                                        onChange={(e) => {
+                                                                            const newVars = [...createForm.variations];
+                                                                            newVars[vIdx].name = e.target.value;
+                                                                            setCreateForm({ ...createForm, variations: newVars });
+                                                                        }}
+                                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-400 transition-all"
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Rate ($)</label>
+                                                                    <input 
+                                                                        type="number"
+                                                                        value={v.selling_price}
+                                                                        onChange={(e) => {
+                                                                            const newVars = [...createForm.variations];
+                                                                            newVars[vIdx].selling_price = e.target.value;
+                                                                            setCreateForm({ ...createForm, variations: newVars });
+                                                                        }}
+                                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-400 transition-all"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-bold text-slate-400 uppercase ml-1">Asset Mapping</label>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input 
+                                                                        type="file"
+                                                                        id={`var-img-${vIdx}`}
+                                                                        className="hidden"
+                                                                        onChange={(e) => {
+                                                                            if (e.target.files) {
+                                                                                const newVars = [...createForm.variations];
+                                                                                newVars[vIdx].images = [...newVars[vIdx].images, ...Array.from(e.target.files)];
+                                                                                setCreateForm({ ...createForm, variations: newVars });
+                                                                            }
+                                                                        }}
+                                                                        multiple
+                                                                    />
+                                                                    <label htmlFor={`var-img-${vIdx}`} className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-[9px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-white hover:border-indigo-300 hover:text-indigo-600 transition-all flex items-center gap-1.5">
+                                                                        <Upload size={10} />
+                                                                        Add Visual
+                                                                    </label>
+                                                                    <div className="flex -space-x-2 overflow-hidden">
+                                                                        {v.images.map((img, iIdx) => (
+                                                                            <img key={iIdx} src={URL.createObjectURL(img)} className="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover" />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setCreateForm({
+                                                            ...createForm,
+                                                            variations: [...createForm.variations, { name: '', selling_price: '', images: [] }]
+                                                        });
+                                                    }}
+                                                    className="w-full py-2.5 border-2 border-dashed border-indigo-200 rounded-xl text-[10px] font-bold text-indigo-400 hover:bg-white hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <Plus size={14} />
+                                                    INITIATE NEW VARIATION
                                                 </button>
                                             </div>
                                         )}
