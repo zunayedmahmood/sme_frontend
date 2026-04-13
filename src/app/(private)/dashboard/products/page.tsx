@@ -268,15 +268,11 @@ export default function ProductsPage() {
                 for (const v of editForm.variations) {
                     const origV = original.variations.find(ov => ov.id === v.id);
                     if (origV) {
-                        const hasPricingChanged = v.selling_price !== origV.selling_price || 
-                                                 v.has_dynamic_pricing !== origV.has_dynamic_pricing ||
-                                                 JSON.stringify(v.price_slabs) !== JSON.stringify(origV.price_slabs);
+                        const hasPricingChanged = v.selling_price !== origV.selling_price;
                         if (v.name !== origV.name || hasPricingChanged) {
                             await updateVariation(v.id, {
                                 name: v.name,
-                                selling_price: v.selling_price === '' ? null : v.selling_price,
-                                has_dynamic_pricing: v.has_dynamic_pricing,
-                                price_slabs: v.price_slabs || []
+                                selling_price: v.selling_price === '' ? null : v.selling_price
                             });
                         }
                     }
