@@ -87,7 +87,7 @@ export default function ProductDetailPage() {
     const hasDynamic = currentVariation ? currentVariation.has_dynamic_pricing : product?.has_dynamic_pricing;
     const currentStock = currentVariation ? currentVariation.available_stock : product?.available_stock;
     const displayImages = (currentVariation && currentVariation.image_src && currentVariation.image_src.length > 0) ? currentVariation.image_src : (product?.image_src || []);
-    
+
     const cartKey = currentVariation ? `${product?.id}-${currentVariation.id}` : `${product?.id}-null`;
     const currentQtyInCart = product ? (cart[cartKey] || 0) : 0;
     const maxCanAdd = product ? Math.max(0, (currentStock || 0) - currentQtyInCart) : 0;
@@ -121,7 +121,7 @@ export default function ProductDetailPage() {
                 <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-[32px] flex items-center justify-center mb-8">
                     <Package size={40} />
                 </div>
-                <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">Void Detected</h2>
+                <h2 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">Product Not Found</h2>
                 <p className="text-slate-500 font-light mb-10 max-w-sm px-6">The requested equipment profile is either archived or does not exist in our current registry.</p>
                 <Link href="/" className="px-10 py-4 bg-slate-900 text-white rounded-[24px] font-bold text-sm uppercase tracking-widest shadow-xl shadow-slate-900/10 hover:bg-blue-600 transition-all active:scale-95">Return to Home</Link>
             </div>
@@ -186,7 +186,7 @@ export default function ProductDetailPage() {
                         {product.name}
                     </h1>
 
-                    {product.has_variations && product.variations.length > 0 && (
+                    {!!product.has_variations && product.variations.length > 0 && (
                         <div className="mb-8">
                             <h4 className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 text-center lg:text-left">Select Option</h4>
                             <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
@@ -207,15 +207,15 @@ export default function ProductDetailPage() {
                         {currentPrice !== null ? (
                             <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">${currentPrice}</span>
                         ) : (
-                            <span className="text-2xl sm:text-3xl font-bold text-blue-600 tracking-tight">Price on Request</span>
+                            <span className="text-2xl sm:text-3xl font-bold text-blue-600 tracking-tight">Contact for Price</span>
                         )}
                     </div>
 
-                    {hasDynamic && currentSlabs && currentSlabs.length > 0 && (
+                    {!!hasDynamic && currentSlabs && currentSlabs.length > 0 && (
                         <div className="mb-8 p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-4 flex items-center gap-2">
                                 <Activity size={14} />
-                                Dynamic Pricing Tiers
+                                Pricing Tiers
                             </h4>
                             <div className="grid grid-cols-2 gap-4">
                                 {currentSlabs.map((slab, index) => (

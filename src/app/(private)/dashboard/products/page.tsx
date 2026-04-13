@@ -517,7 +517,13 @@ export default function ProductsPage() {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unit Cost</p>
-                                        <p className="text-xl font-bold text-blue-600">${product.selling_price}</p>
+                                        {product.has_dynamic_pricing ? (
+                                            <p className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md mb-2">VOLUME TIERS</p>
+                                        ) : product.has_variations ? (
+                                            <p className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-md mb-2">VARIOUS SPECS</p>
+                                        ) : (
+                                            <p className="text-xl font-bold text-blue-600">${product.selling_price}</p>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -558,13 +564,18 @@ export default function ProductsPage() {
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-2">
-                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Selling Price ($)</label>
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Selling Price ($)</label>
+                                                                {(editForm?.has_dynamic_pricing || editForm?.has_variations) && (
+                                                                    <span className="text-[8px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded uppercase tracking-tighter">Inactive: Multi-tier mode</span>
+                                                                )}
+                                                            </div>
                                                             <input
-                                                                disabled={editForm?.has_dynamic_pricing}
-                                                                type="number"
-                                                                value={editForm?.has_dynamic_pricing ? '' : (editForm?.selling_price || '')}
+                                                                disabled={editForm?.has_dynamic_pricing || editForm?.has_variations}
+                                                                type="text"
+                                                                value={(editForm?.has_dynamic_pricing || editForm?.has_variations) ? 'VARIABLE CONFIGURATION' : (editForm?.selling_price || '')}
                                                                 onChange={(e) => setEditForm({ ...editForm!, selling_price: e.target.value })}
-                                                                className={`w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all ${editForm?.has_dynamic_pricing ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                                                                className={`w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all ${(editForm?.has_dynamic_pricing || editForm?.has_variations) ? 'opacity-50 grayscale cursor-not-allowed font-mono text-[10px]' : ''}`}
                                                             />
                                                         </div>
                                                         <div className="space-y-2">
