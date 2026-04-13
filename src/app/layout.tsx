@@ -10,6 +10,9 @@ const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 export const metadata: Metadata = {
   title: 'Sareng Medical Equipment | Professional Medical Solutions',
   description: 'Premium medical grade equipment and supplies for healthcare professionals.',
+  icons: {
+    icon: '/ShopLogo.png',
+  },
 };
 
 export default function RootLayout({
