@@ -6,7 +6,8 @@ import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
 import { Search, Filter, ChevronDown, ShoppingBag, Plus, Check, Loader2, ArrowRight, ChevronRight } from 'lucide-react';
 
-const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800';
+// Attribution: https://unsplash.com/illustrations/a-graphic-icon-representing-a-landscape-with-mountains-and-sun-XjQ8nxFvHxw?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
+const PLACEHOLDER_IMG = '/placeholder_no_image.jpg';
 
 interface Product {
     id: number;

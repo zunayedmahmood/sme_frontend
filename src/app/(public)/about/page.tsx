@@ -121,8 +121,9 @@ export default function AboutPage() {
             {/* ── Hero ── */}
             <section className="relative min-h-[70vh] sm:h-[80vh] flex items-center overflow-hidden py-16 sm:py-0">
                 <div className="absolute inset-0 z-0">
+                    {/* Attribution: https://unsplash.com/photos/two-men-wearing-blue-lab-coats-tMFeatBSS4s?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink */}
                     <img
-                        src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?auto=format&fit=crop&q=80&w=2000"
+                        src="/doctors_operating.jpg"
                         alt="Medical laboratory"
                         className="w-full h-full object-cover"
                     />
@@ -219,8 +220,9 @@ export default function AboutPage() {
 
                         <div className="relative mt-12 sm:mt-0">
                             <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+                                {/* Attribution: https://unsplash.com/photos/two-men-wearing-blue-lab-coats-tMFeatBSS4s?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink */}
                                 <img
-                                    src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=900"
+                                    src="/doctors_looking.jpg"
                                     alt="Medical professionals at work"
                                     className="w-full h-full object-cover"
                                 />

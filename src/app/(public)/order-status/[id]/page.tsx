@@ -21,7 +21,8 @@ import Link from 'next/link';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const PLACEHOLDER_IMG = '/stock_image.png';
+// Attribution: https://unsplash.com/illustrations/a-graphic-icon-representing-a-landscape-with-mountains-and-sun-XjQ8nxFvHxw?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
+const PLACEHOLDER_IMG = '/placeholder_no_image.jpg';
 
 
 // ─── UI Components ───────────────────────────────────────────────────────────

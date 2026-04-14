@@ -17,7 +17,9 @@ import {
     updateHasVariations,
     createVariation,
     updateVariation,
-    deleteVariation
+    deleteVariation,
+    addVariationImages,
+    deleteVariationImages
 } from '@/lib/api/api_private';
 import {
     ChevronDown,
@@ -41,7 +43,8 @@ import {
     Upload
 } from 'lucide-react';
 
-const PLACEHOLDER_IMG = 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800';
+// Attribution: https://unsplash.com/illustrations/a-graphic-icon-representing-a-landscape-with-mountains-and-sun-XjQ8nxFvHxw?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
+const PLACEHOLDER_IMG = '/placeholder_no_image.jpg';
 
 interface Category {
     id: number;
@@ -342,6 +345,67 @@ export default function ProductsPage() {
             setImageToDelete(null);
         } catch (err) {
             alert('Asset disposal failed.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleAddVariationImages = async (productId: number, variationId: number, files: FileList) => {
+        setActionLoading(true);
+        try {
+            const formData = new FormData();
+            Array.from(files).forEach(file => formData.append('images[]', file));
+            const response = await addVariationImages(variationId, formData);
+            const updatedVariation = response.data;
+            
+            setProducts(products.map(p => {
+                if (p.id === productId) {
+                    return {
+                        ...p,
+                        variations: p.variations.map(v => v.id === variationId ? updatedVariation : v)
+                    };
+                }
+                return p;
+            }));
+
+            if (editForm && editForm.id === productId) {
+                setEditForm({
+                    ...editForm,
+                    variations: editForm.variations.map(v => v.id === variationId ? updatedVariation : v)
+                });
+            }
+        } catch (err) {
+            alert('Variation image injection failure.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleRemoveVariationImage = async (productId: number, variationId: number, path: string) => {
+        if (!confirm('Dispose of this variation asset?')) return;
+        setActionLoading(true);
+        try {
+            const response = await deleteVariationImages(variationId, [path]);
+            const updatedVariation = response.data;
+
+            setProducts(products.map(p => {
+                if (p.id === productId) {
+                    return {
+                        ...p,
+                        variations: p.variations.map(v => v.id === variationId ? updatedVariation : v)
+                    };
+                }
+                return p;
+            }));
+
+            if (editForm && editForm.id === productId) {
+                setEditForm({
+                    ...editForm,
+                    variations: editForm.variations.map(v => v.id === variationId ? updatedVariation : v)
+                });
+            }
+        } catch (err) {
+            alert('Variation asset disposal failed.');
         } finally {
             setActionLoading(false);
         }
@@ -651,19 +715,56 @@ export default function ProductsPage() {
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
-                                                                                <div className="space-y-1">
-                                                                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Base Price ($)</label>
-                                                                                    <input
-                                                                                        type="number"
-                                                                                        value={v.selling_price || ''}
-                                                                                        onChange={(e) => {
-                                                                                            const newVariations = [...editForm.variations];
-                                                                                            newVariations[vIdx].selling_price = e.target.value;
-                                                                                            setEditForm({ ...editForm, variations: newVariations });
-                                                                                        }}
-                                                                                        placeholder="Price on Request"
-                                                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all"
-                                                                                    />
+                                                                                <div className="p-4 space-y-4">
+                                                                                    <div className="space-y-2">
+                                                                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Base Price ($)</label>
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            value={v.selling_price || ''}
+                                                                                            onChange={(e) => {
+                                                                                                const newVariations = [...editForm.variations];
+                                                                                                newVariations[vIdx].selling_price = e.target.value;
+                                                                                                setEditForm({ ...editForm, variations: newVariations });
+                                                                                            }}
+                                                                                            placeholder="Price on Request"
+                                                                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 outline-none focus:bg-white focus:border-blue-500 transition-all"
+                                                                                        />
+                                                                                    </div>
+
+                                                                                    <div className="space-y-2">
+                                                                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Variation Assets</label>
+                                                                                        <div className="grid grid-cols-5 gap-2">
+                                                                                            {(v.image_src || []).map((img, iIdx) => (
+                                                                                                <div key={iIdx} className="aspect-square rounded-lg overflow-hidden border border-slate-100 relative group/vimg bg-slate-50">
+                                                                                                    <img src={img} className="w-full h-full object-cover" />
+                                                                                                    <div className="absolute inset-0 bg-red-600/60 opacity-0 group-hover/vimg:opacity-100 transition-opacity flex items-center justify-center">
+                                                                                                        <button 
+                                                                                                            type="button"
+                                                                                                            onClick={() => handleRemoveVariationImage(editForm.id, v.id, img)}
+                                                                                                            className="p-1 text-white hover:scale-110 transition-transform"
+                                                                                                        >
+                                                                                                            <Trash2 size={12} />
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            ))}
+                                                                                            <label className="aspect-square rounded-lg border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:bg-indigo-50 hover:border-indigo-400 hover:text-indigo-600 transition-all cursor-pointer">
+                                                                                                <Upload size={14} className="mb-1" />
+                                                                                                <span className="text-[8px] font-bold uppercase">Add</span>
+                                                                                                <input 
+                                                                                                    type="file" 
+                                                                                                    multiple 
+                                                                                                    className="hidden" 
+                                                                                                    accept="image/*"
+                                                                                                    onChange={(e) => {
+                                                                                                        if (e.target.files) {
+                                                                                                            handleAddVariationImages(editForm.id, v.id, e.target.files);
+                                                                                                        }
+                                                                                                    }}
+                                                                                                />
+                                                                                            </label>
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
                                                                         </div>
                                                                     ))}

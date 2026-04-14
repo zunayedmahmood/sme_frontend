@@ -177,6 +177,20 @@ export const deleteVariation = async (variationId: number | string) => {
     return response.data;
 };
 
+export const addVariationImages = async (variationId: number | string, formData: FormData) => {
+    const response = await api.post(`/variation/${variationId}/images`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+export const deleteVariationImages = async (variationId: number | string, paths: string[]) => {
+    const response = await api.delete(`/variation/${variationId}/images`, { data: { paths } });
+    return response.data;
+};
+
 // Admin Inventory (Batches)
 export const addInventoryBatch = async (data: { product_id: number; cost_price: number; quantity: number; variation_id?: number | null }) => {
     const response = await api.post('/inventory/add', data);

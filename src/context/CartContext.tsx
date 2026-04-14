@@ -121,22 +121,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             
             // Reconcile: Only adjust quantities if the backend says we have LESS than we thought
             // or if the price changed.
+            // Reconcile: Completely rebuild cart based on returned items
             setCart(prev => {
-                const updated = { ...prev };
+                const updated: CartItemObject = {};
                 validation.items.forEach((vi: any) => {
                     const cartKey = vi.variation_id ? `${vi.product_id}-${vi.variation_id}` : `${vi.product_id}-null`;
                     
-                    // If backend says qty is 0 (out of stock), remove it
-                    if (vi.qty <= 0) {
-                        delete updated[cartKey];
-                    } else if (updated[cartKey] !== undefined) {
-                        // If we have more in local state than available_stock, cap it
-                        if (updated[cartKey] > vi.available_stock) {
-                            updated[cartKey] = vi.available_stock;
-                        }
-                    }
-
+                    // Only keep in cart if quantity > 0
                     if (vi.qty > 0) {
+                        // Use original quantity if available, capped by available stock
+                        // If it's a new item (unlikely here) or somehow missing from prev, use backend qty
+                        const originalQty = prev[cartKey] || vi.qty;
+                        updated[cartKey] = Math.min(originalQty, vi.available_stock);
+
                         details.push({
                             id: vi.product_id,
                             cart_key: cartKey,
