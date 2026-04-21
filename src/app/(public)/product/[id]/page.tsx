@@ -87,7 +87,17 @@ export default function ProductDetailPage() {
     const currentSlabs = currentVariation ? currentVariation.price_slabs : product?.price_slabs;
     const hasDynamic = currentVariation ? currentVariation.has_dynamic_pricing : product?.has_dynamic_pricing;
     const currentStock = currentVariation ? currentVariation.available_stock : product?.available_stock;
-    const displayImages = (currentVariation && currentVariation.image_src && currentVariation.image_src.length > 0) ? currentVariation.image_src : (product?.image_src || []);
+    
+    // Images belonging to the CURRENT selection
+    const displayImages = (currentVariation && currentVariation.image_src && currentVariation.image_src.length > 0) 
+        ? currentVariation.image_src 
+        : (product?.image_src || []);
+
+    // ALL unique images across product and ALL variations
+    const allGalleryImages = Array.from(new Set([
+        ...(product?.image_src || []),
+        ...(product?.variations?.flatMap(v => v.image_src || []) || [])
+    ]));
 
     const cartKey = currentVariation ? `${product?.id}-${currentVariation.id}` : `${product?.id}-null`;
     const currentQtyInCart = product ? (cart[cartKey] || 0) : 0;
@@ -97,6 +107,17 @@ export default function ProductDetailPage() {
         if (localQty > maxCanAdd && maxCanAdd > 0) setLocalQty(maxCanAdd);
         if (maxCanAdd === 0) setLocalQty(1);
     }, [maxCanAdd]);
+
+    // When variant changes, update active image to the first image of that variant if it exists in allGalleryImages
+    useEffect(() => {
+        if (currentVariation && currentVariation.image_src && currentVariation.image_src.length > 0) {
+            const firstVarImg = currentVariation.image_src[0];
+            const globalIndex = allGalleryImages.indexOf(firstVarImg);
+            if (globalIndex !== -1) {
+                setActiveImage(globalIndex);
+            }
+        }
+    }, [selectedVariation]);
 
     const handleAddToCart = (availableStock: number) => {
         if (maxCanAdd <= 0) return;
@@ -141,7 +162,7 @@ export default function ProductDetailPage() {
                 <div className="space-y-6 sm:space-y-8 lg:sticky lg:top-32">
                     <div className="aspect-[4/5] bg-slate-50 rounded-3xl sm:rounded-[48px] overflow-hidden border border-slate-100 shadow-xl shadow-slate-200/50 group relative">
                         <img
-                            src={displayImages.length > 0 ? displayImages[activeImage] : PLACEHOLDER_IMG}
+                            src={allGalleryImages.length > 0 ? allGalleryImages[activeImage] : PLACEHOLDER_IMG}
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.05]"
                         />
@@ -158,9 +179,9 @@ export default function ProductDetailPage() {
                             </div>
                         </div>
                     </div>
-                    {displayImages.length > 1 && (
+                    {allGalleryImages.length > 1 && (
                         <div className="flex gap-3 sm:gap-5 overflow-x-auto pb-4 scrollbar-hide px-2">
-                            {displayImages.map((img, i) => (
+                            {allGalleryImages.map((img, i) => (
                                 <button
                                     key={i}
                                     onClick={() => setActiveImage(i)}
@@ -194,7 +215,7 @@ export default function ProductDetailPage() {
                                 {product.variations.map((v) => (
                                     <button
                                         key={v.id}
-                                        onClick={() => { setSelectedVariation(v); setLocalQty(1); setActiveImage(0); }}
+                                        onClick={() => { setSelectedVariation(v); setLocalQty(1); }}
                                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${selectedVariation?.id === v.id ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-100 text-slate-500 hover:border-blue-300'}`}
                                     >
                                         {v.name}
