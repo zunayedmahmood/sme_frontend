@@ -32,6 +32,7 @@ import {
     Activity,
     FileText
 } from 'lucide-react';
+import MarkdownRenderer from '@/app/components/MarkdownRenderer';
 
 // Attribution: https://unsplash.com/illustrations/a-graphic-icon-representing-a-landscape-with-mountains-and-sun-XjQ8nxFvHxw?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
 const PLACEHOLDER_IMG = '/placeholder_no_image.jpg';
@@ -438,9 +439,9 @@ export default function InventoryPage() {
                                                     <FileText size={10} />
                                                     Product Description
                                                 </p>
-                                                <p className="text-xs text-slate-500 italic leading-relaxed font-light">
-                                                    {product.description || 'Global inventory record without additional metadata.'}
-                                                </p>
+                                                <div className="text-xs text-slate-500 italic leading-relaxed font-light">
+                                                    <MarkdownRenderer content={product.description || 'Global inventory record without additional metadata.'} />
+                                                </div>
                                             </div>
                                         </div>
 

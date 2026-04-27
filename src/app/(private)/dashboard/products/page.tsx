@@ -42,6 +42,7 @@ import {
     Settings,
     Upload
 } from 'lucide-react';
+import MarkdownRenderer from '@/app/components/MarkdownRenderer';
 
 // Attribution: https://unsplash.com/illustrations/a-graphic-icon-representing-a-landscape-with-mountains-and-sun-XjQ8nxFvHxw?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
 const PLACEHOLDER_IMG = '/placeholder_no_image.jpg';
@@ -90,6 +91,10 @@ export default function ProductsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     const [expandedProductId, setExpandedProductId] = useState<number | null>(null);
     const [editProductId, setEditProductId] = useState<number | null>(null);
@@ -186,6 +191,17 @@ export default function ProductsPage() {
     };
 
     useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchQuery(searchQuery);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    useEffect(() => {
+        fetchProducts(1);
+    }, [debouncedSearchQuery, selectedCategoryId]);
+
+    useEffect(() => {
         fetchProducts(currentPage);
         fetchCategories();
     }, [currentPage]);
@@ -193,7 +209,11 @@ export default function ProductsPage() {
     const fetchProducts = async (page: number) => {
         setLoading(true);
         try {
-            const response = await getAllProductsPaginatedAdmin({ page });
+            const params: any = { page };
+            if (debouncedSearchQuery) params.search = debouncedSearchQuery;
+            if (selectedCategoryId) params.category_id = selectedCategoryId;
+
+            const response = await getAllProductsPaginatedAdmin(params);
             const paginatedData = response.data;
             setProducts(paginatedData.data);
             if (paginatedData.pagination) {
@@ -523,6 +543,36 @@ export default function ProductsPage() {
                 </div>
             </div>
 
+            {/* Search and Filter Section */}
+            <div className="flex flex-col md:flex-row gap-4 animate-in fade-in slide-in-from-top-4 duration-700 delay-200">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                    <input
+                        type="text"
+                        placeholder="Search by product name, variation, or category..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full h-14 pl-12 pr-5 bg-white border border-slate-200 rounded-2xl font-medium text-slate-900 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all shadow-sm"
+                    />
+                </div>
+                <div className="w-full md:w-72 relative">
+                    <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <select
+                        value={selectedCategoryId || ''}
+                        onChange={(e) => setSelectedCategoryId(e.target.value ? Number(e.target.value) : null)}
+                        className="w-full h-14 pl-11 pr-10 bg-white border border-slate-200 rounded-2xl font-medium text-slate-900 outline-none appearance-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 transition-all shadow-sm cursor-pointer"
+                    >
+                        <option value="">All Categories</option>
+                        {allCategories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                                {cat.name}
+                            </option>
+                        ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                </div>
+            </div>
+
             {error && (
                 <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-600 font-bold text-sm">
                     <X className="w-5 h-5" />
@@ -655,8 +705,8 @@ export default function ProductsPage() {
                                                         <textarea
                                                             value={editForm?.description || ''}
                                                             onChange={(e) => setEditForm({ ...editForm!, description: e.target.value })}
-                                                            rows={4}
-                                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all resize-none"
+                                                            rows={6}
+                                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all resize-y min-h-[120px]"
                                                             placeholder="Describe clinical applications..."
                                                         />
                                                     </div>
@@ -977,9 +1027,9 @@ export default function ProductsPage() {
                                                             <FileText size={12} />
                                                             Product Description
                                                         </h4>
-                                                        <p className="text-slate-700 leading-relaxed font-light text-sm italic">
-                                                            {product.description || 'Global inventory record without additional metadata.'}
-                                                        </p>
+                                                        <div className="text-slate-700 leading-relaxed font-light text-sm italic">
+                                                            <MarkdownRenderer content={product.description || 'Global inventory record without additional metadata.'} />
+                                                        </div>
                                                     </div>
 
                                                     {product.has_variations && product.variations.length > 0 && (
@@ -1283,9 +1333,9 @@ export default function ProductsPage() {
                                         <textarea
                                             value={createForm.description}
                                             onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                                            rows={4}
+                                            rows={6}
                                             placeholder="Detailed technical overview and safety warnings..."
-                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all resize-none"
+                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all resize-y min-h-[120px]"
                                         />
                                     </div>
                                     <div className="space-y-4 pt-4 border-t border-slate-100">

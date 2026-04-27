@@ -17,6 +17,7 @@ import {
     Package,
     MessageCircle
 } from 'lucide-react';
+import MarkdownRenderer from '@/app/components/MarkdownRenderer';
 
 // Attribution: https://unsplash.com/illustrations/a-graphic-icon-representing-a-landscape-with-mountains-and-sun-XjQ8nxFvHxw?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
 const PLACEHOLDER_IMG = '/placeholder_no_image.jpg';
@@ -257,9 +258,12 @@ export default function ProductDetailPage() {
                             <Activity size={12} className="text-blue-400 sm:w-3.5 sm:h-3.5" />
                             Description
                         </h4>
-                        <p className="text-slate-600 leading-relaxed font-light text-base sm:text-xl text-center lg:text-left">
-                            {product.description || "This clinical instrument is a key component of our professional inventory, meticulously verified for medical performance and reliability"}
-                        </p>
+                        <div className="text-slate-600">
+                            <MarkdownRenderer 
+                                content={product.description || "This clinical instrument is a key component of our professional inventory, meticulously verified for medical performance and reliability"} 
+                                className="text-base sm:text-lg"
+                            />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] lg:grid-cols-[160px_1fr] xl:grid-cols-[200px_1fr] gap-4 sm:gap-5">
