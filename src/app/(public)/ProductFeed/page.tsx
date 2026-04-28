@@ -4,7 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { getProductFeed, getCategoryInventory } from '@/lib/api/api_public';
 import { useCart } from '@/context/CartContext';
 import Link from 'next/link';
-import { Search, Filter, ChevronDown, ShoppingBag, Plus, Check, Loader2, ArrowRight, ChevronRight } from 'lucide-react';
+import { Search, Filter, ChevronDown, ShoppingBag, Plus, Check, Loader2, ArrowRight, ChevronRight, X } from 'lucide-react';
 
 // Attribution: https://unsplash.com/illustrations/a-graphic-icon-representing-a-landscape-with-mountains-and-sun-XjQ8nxFvHxw?utm_source=unsplash&utm_medium=referral&utm_content=creditShareLink
 const PLACEHOLDER_IMG = '/placeholder_no_image.jpg';
@@ -114,15 +114,24 @@ export default function ProductFeedPage() {
                             {/* Search */}
                             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">Search Catalog</h3>
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                <div className="relative group">
+                                    <Search className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${searchQuery ? 'text-blue-500' : 'text-slate-400 group-focus-within:text-blue-500'}`} />
                                     <input
                                         type="text"
-                                        placeholder="Search Products..."
+                                        placeholder="Name, description, variant..."
                                         value={searchQuery}
                                         onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:border-blue-500 focus:bg-white outline-none transition-all"
+                                        className="w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-400"
                                     />
+                                    {searchQuery && (
+                                        <button 
+                                            onClick={() => { setSearchQuery(''); setCurrentPage(1); }}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-slate-100 rounded-xl transition-all hover:scale-110 active:scale-95"
+                                            title="Clear search"
+                                        >
+                                            <X size={14} className="text-slate-400" />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -182,6 +191,21 @@ export default function ProductFeedPage() {
 
                     {/* Product Grid */}
                     <main className="flex-1">
+                        {searchQuery && !loading && (
+                            <div className="mb-8 flex items-center justify-between bg-white px-6 py-4 rounded-2xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                                <p className="text-slate-600 text-sm">
+                                    Found <span className="font-bold text-slate-900">{pagination?.total || 0}</span> {pagination?.total === 1 ? 'product' : 'products'} for <span className="text-blue-600 font-bold italic">"{searchQuery}"</span>
+                                </p>
+                                <button 
+                                    onClick={() => { setSearchQuery(''); setCurrentPage(1); }}
+                                    className="text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest flex items-center gap-1.5"
+                                >
+                                    <X size={12} />
+                                    Clear
+                                </button>
+                            </div>
+                        )}
+
                         {loading && products.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-40">
                                 <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
@@ -214,14 +238,16 @@ export default function ProductFeedPage() {
 
                                             <div className="p-6 flex flex-col flex-grow">
                                                 <Link href={`/product/${product.id}`}>
-                                                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1 mb-1">{product.name}</h3>
+                                                    <h3 className={`${product.name.length > 50 ? 'text-sm' : 'text-lg'} font-bold text-slate-900 group-hover:text-blue-600 transition-all line-clamp-3 mb-2 leading-tight min-h-[3.5rem]`}>
+                                                        {product.name}
+                                                    </h3>
                                                 </Link>
                                                 <div className="flex items-center justify-between mb-6">
                                                     <p className="text-2xl font-bold text-blue-600">
-                                                        {product.has_variations 
-                                                            ? 'Options Available' 
-                                                            : (product.selling_price !== null 
-                                                                ? `$${product.selling_price}` 
+                                                        {product.has_variations
+                                                            ? 'Options Available'
+                                                            : (product.selling_price !== null
+                                                                ? `$${product.selling_price}`
                                                                 : 'Price on Request')}
                                                     </p>
                                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.sold_count} Sold</span>
@@ -240,13 +266,13 @@ export default function ProductFeedPage() {
                                                             href={`/product/${product.id}`}
                                                             className="w-full py-3.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-900 hover:text-white transition-all active:scale-95 shadow-sm"
                                                         >
-                                                            Medical Inquiry
+                                                            Contact Us
                                                         </Link>
                                                     ) : inCartQty > 0 ? (
                                                         <div className="flex items-center gap-2">
                                                             <div className="flex-1 h-12 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center gap-2">
-                                                                 <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">In Cart</span>
-                                                                 <span className="text-sm font-bold text-blue-600">{inCartQty}</span>
+                                                                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">In Cart</span>
+                                                                <span className="text-sm font-bold text-blue-600">{inCartQty}</span>
                                                             </div>
                                                             <button
                                                                 onClick={() => handleAddToCart(product.id, product.available_stock)}

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { getCategoryInventory, getShopStats, saveMessage } from '@/lib/api/api_public';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowRight, Activity, Beaker, Shield, Thermometer, Box, Mail, Send, User, BookOpen, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface Category {
@@ -29,11 +29,19 @@ export default function HomePage() {
     });
     const [loadingStats, setLoadingStats] = useState(true);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         fetchCategories();
         fetchStats();
     }, []);
+
+    useEffect(() => {
+        const subject = searchParams.get('subject');
+        if (subject) {
+            setFormData(prev => ({ ...prev, subject }));
+        }
+    }, [searchParams]);
 
     const fetchStats = async () => {
         try {

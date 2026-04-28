@@ -299,7 +299,7 @@ export default function ProductDetailPage() {
                             </>
                         ) : (
                             <Link
-                                href="/#contact"
+                                href={`/#contact?subject=${encodeURIComponent(`Price of ${product.name}${selectedVariation ? ` (${selectedVariation.name})` : ''}`)}`}
                                 className="col-span-full flex items-center justify-center space-x-3 py-4 sm:py-6 bg-slate-900 shadow-2xl shadow-slate-900/10 text-white rounded-2xl sm:rounded-[32px] font-bold text-xs sm:text-sm uppercase tracking-widest hover:bg-blue-600 hover:-translate-y-1 transition-all active:scale-[0.98]"
                             >
                                 <MessageCircle size={18} />
