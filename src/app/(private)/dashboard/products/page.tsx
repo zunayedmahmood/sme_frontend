@@ -1766,7 +1766,7 @@ export default function ProductsPage() {
                                                     onClick={() => {
                                                         setCreateForm({
                                                             ...createForm,
-                                                            variations: [...createForm.variations, { name: '', selling_price: '', images: [] }]
+                                                            variations: [...createForm.variations, { name: '', selling_price: '', images: [], has_dynamic_pricing: false, price_slabs: [] }]
                                                         });
                                                     }}
                                                     className="w-full py-2.5 border-2 border-dashed border-indigo-200 rounded-xl text-[10px] font-bold text-indigo-400 hover:bg-white hover:border-indigo-400 hover:text-indigo-600 transition-all flex items-center justify-center gap-2"
