@@ -1,9 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { getCategoryInventory, getShopStats, saveMessage } from '@/lib/api/api_public';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowRight, Activity, Beaker, Shield, Thermometer, Box, Mail, Send, User, BookOpen, MessageCircle, CheckCircle2, Loader2 } from 'lucide-react';
+
+// Separate component to safely use useSearchParams inside a Suspense boundary
+function SearchParamsHandler({ onSubject }: { onSubject: (subject: string) => void }) {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const subject = searchParams.get('subject');
+        if (subject) {
+            onSubject(subject);
+        }
+    }, [searchParams, onSubject]);
+
+    return null;
+}
 
 interface Category {
     category_id: number;
@@ -29,19 +43,11 @@ export default function HomePage() {
     });
     const [loadingStats, setLoadingStats] = useState(true);
     const router = useRouter();
-    const searchParams = useSearchParams();
 
     useEffect(() => {
         fetchCategories();
         fetchStats();
     }, []);
-
-    useEffect(() => {
-        const subject = searchParams.get('subject');
-        if (subject) {
-            setFormData(prev => ({ ...prev, subject }));
-        }
-    }, [searchParams]);
 
     const fetchStats = async () => {
         try {
@@ -85,6 +91,10 @@ export default function HomePage() {
 
     return (
         <div className="flex flex-col">
+            {/* Safely consume useSearchParams inside Suspense */}
+            <Suspense fallback={null}>
+                <SearchParamsHandler onSubject={(subject) => setFormData(prev => ({ ...prev, subject }))} />
+            </Suspense>
             {/* Hero Section */}
             <section className="relative h-[85vh] flex items-center overflow-hidden">
                 {/* Background Image with Overlay */}
