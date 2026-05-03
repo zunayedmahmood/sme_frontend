@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { getProductById } from '@/lib/api/api_public';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
@@ -50,6 +50,7 @@ interface Product {
 
 export default function ProductDetailPage() {
     const { id } = useParams();
+    const router = useRouter();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -227,7 +228,7 @@ export default function ProductDetailPage() {
                     )}
 
                     <div className="flex items-baseline gap-4 mb-8 sm:mb-12 justify-center lg:justify-start">
-                        {currentPrice !== null ? (
+                        {(currentPrice !== null && (currentStock || 0) > 0) ? (
                             <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">${currentPrice}</span>
                         ) : (
                             <span className="text-2xl sm:text-3xl font-bold text-blue-600 tracking-tight">Contact for Price</span>
@@ -267,7 +268,7 @@ export default function ProductDetailPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] lg:grid-cols-[160px_1fr] xl:grid-cols-[200px_1fr] gap-4 sm:gap-5">
-                        {currentPrice !== null ? (
+                        {(currentPrice !== null && (currentStock || 0) > 0) ? (
                             <>
                                 {/* Qty Stepper */}
                                 <div className="bg-slate-50 border border-slate-100 rounded-2xl sm:rounded-[32px] p-1.5 sm:p-2 flex items-center justify-between shadow-sm">
@@ -298,13 +299,17 @@ export default function ProductDetailPage() {
                                 </button>
                             </>
                         ) : (
-                            <Link
-                                href={`/#contact?subject=${encodeURIComponent(`Price of ${product.name}${selectedVariation ? ` (${selectedVariation.name})` : ''}`)}`}
+                            <button
+                                onClick={() => {
+                                    const subject = `Price inquiry: ${product.name}${selectedVariation ? ` (${selectedVariation.name})` : ''}`;
+                                    localStorage.setItem('contact_inquiry', JSON.stringify({ subject }));
+                                    router.push('/#contact');
+                                }}
                                 className="col-span-full flex items-center justify-center space-x-3 py-4 sm:py-6 bg-slate-900 shadow-2xl shadow-slate-900/10 text-white rounded-2xl sm:rounded-[32px] font-bold text-xs sm:text-sm uppercase tracking-widest hover:bg-blue-600 hover:-translate-y-1 transition-all active:scale-[0.98]"
                             >
                                 <MessageCircle size={18} />
                                 <span>Contact Us for Pricing</span>
-                            </Link>
+                            </button>
                         )}
                     </div>
 

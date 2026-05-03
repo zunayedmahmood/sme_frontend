@@ -102,8 +102,8 @@ const Input = ({ label, error, ...props }: any) => (
         <input
             {...props}
             className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm font-medium outline-none focus:bg-white transition-all ${error
-                    ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
-                    : 'border-slate-200 focus:border-blue-500'
+                ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-500/10'
+                : 'border-slate-200 focus:border-blue-500'
                 } ${props.className || ''}`}
         />
         {error && <p className="text-[10px] font-bold text-red-500 ml-1 mt-1">{error}</p>}
@@ -117,8 +117,8 @@ const Select = ({ label, children, error, ...props }: any) => (
             <select
                 {...props}
                 className={`w-full px-4 py-3 bg-slate-50 border rounded-xl text-sm font-medium outline-none appearance-none focus:ring-2 transition-all ${error
-                        ? 'border-red-400 bg-red-50 focus:ring-red-500/10 focus:border-red-500'
-                        : 'border-slate-200 focus:ring-blue-500'
+                    ? 'border-red-400 bg-red-50 focus:ring-red-500/10 focus:border-red-500'
+                    : 'border-slate-200 focus:ring-blue-500'
                     } ${props.className || ''}`}
             >
                 {children}
@@ -861,7 +861,7 @@ export default function OrderListPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         <Input label="Full Name" placeholder="Dr. John Smith" error={formErrors.name} value={formData.customer_details?.name} onChange={(e: any) => { setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, name: e.target.value } })); setFormErrors(prev => ({ ...prev, name: '' })); }} />
                                         <Input label="Contact email" placeholder="hospital@region.gov" error={formErrors.email} value={formData.customer_details?.email} onChange={(e: any) => { setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, email: e.target.value } })); setFormErrors(prev => ({ ...prev, email: '' })); }} />
-                                        <Input label="Phone Line" placeholder="01XXXXXXXXX" error={formErrors.phone} value={formData.customer_details?.phone} onChange={(e: any) => { setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, phone: e.target.value } })); setFormErrors(prev => ({ ...prev, phone: '' })); }} />
+                                        <Input label="Phone Line" placeholder="XXXXXXXXXXX" error={formErrors.phone} value={formData.customer_details?.phone} onChange={(e: any) => { setFormData(prev => ({ ...prev, customer_details: { ...prev.customer_details!, phone: e.target.value } })); setFormErrors(prev => ({ ...prev, phone: '' })); }} />
                                     </div>
                                 </div>
 

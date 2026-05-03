@@ -228,9 +228,7 @@ export default function ProductFeedPage() {
                                                     alt={product.name}
                                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 />
-                                                {product.available_stock <= 0 && (
-                                                    <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Out of Stock</div>
-                                                )}
+
                                                 {product.sold_count > 20 && (
                                                     <div className="absolute top-4 left-4 bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg">Popular Choice</div>
                                                 )}
@@ -246,9 +244,9 @@ export default function ProductFeedPage() {
                                                     <p className="text-2xl font-bold text-blue-600">
                                                         {product.has_variations
                                                             ? 'Options Available'
-                                                            : (product.selling_price !== null
-                                                                ? `$${product.selling_price}`
-                                                                : 'Price on Request')}
+                                                            : ((product.selling_price !== null && product.available_stock > 0)
+                                                                 ? `$${product.selling_price}`
+                                                                 : 'Price on Request')}
                                                     </p>
                                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.sold_count} Sold</span>
                                                 </div>
@@ -261,7 +259,7 @@ export default function ProductFeedPage() {
                                                         >
                                                             Select Configuration
                                                         </Link>
-                                                    ) : product.selling_price === null ? (
+                                                    ) : (product.selling_price === null || product.available_stock <= 0) ? (
                                                         <Link
                                                             href={`/product/${product.id}`}
                                                             className="w-full py-3.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-900 hover:text-white transition-all active:scale-95 shadow-sm"

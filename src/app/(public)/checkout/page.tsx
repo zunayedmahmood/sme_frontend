@@ -219,33 +219,33 @@ export default function OrderPage() {
                                 ) : (
                                     <div className="space-y-4">
                                         {cartDetails.map(item => {
-                                             // Get qty from local storage directly as it's the source of truth for counts
-                                             const raw = typeof window !== 'undefined' ? localStorage.getItem('cart') : null;
-                                             const cartMap: Record<string, number> = raw ? JSON.parse(raw) : {};
-                                             const qty = cartMap[item.cart_key] || 0;
+                                            // Get qty from local storage directly as it's the source of truth for counts
+                                            const raw = typeof window !== 'undefined' ? localStorage.getItem('cart') : null;
+                                            const cartMap: Record<string, number> = raw ? JSON.parse(raw) : {};
+                                            const qty = cartMap[item.cart_key] || 0;
 
-                                             return (
-                                            <div key={item.cart_key} className="flex items-center gap-4 sm:gap-6 p-4 bg-slate-50/50 border border-transparent hover:border-blue-100 hover:bg-white rounded-[28px] transition-all group">
-                                                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-white border border-slate-100 flex-shrink-0">
-                                                    <img src={item.image_src?.[0] || PLACEHOLDER_IMG} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm sm:text-base font-bold text-slate-900 truncate tracking-tight">{item.name}</p>
-                                                    {item.variation_id && (
-                                                        <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">Variation Selected</p>
-                                                    )}
-                                                    <div className="flex items-center gap-2 sm:gap-3 mt-1.5">
-                                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 bg-slate-100 px-2 sm:px-3 py-1 rounded-full uppercase tracking-widest">
-                                                            Qty: {qty}
-                                                        </span>
-                                                        <span className="text-[10px] sm:text-xs font-bold text-blue-600">${item.selling_price} / unit</span>
+                                            return (
+                                                <div key={item.cart_key} className="flex items-center gap-4 sm:gap-6 p-4 bg-slate-50/50 border border-transparent hover:border-blue-100 hover:bg-white rounded-[28px] transition-all group">
+                                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-white border border-slate-100 flex-shrink-0">
+                                                        <img src={item.image_src?.[0] || PLACEHOLDER_IMG} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm sm:text-base font-bold text-slate-900 truncate tracking-tight">{item.name}</p>
+                                                        {item.variation_id && (
+                                                            <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mt-0.5">Variation Selected</p>
+                                                        )}
+                                                        <div className="flex items-center gap-2 sm:gap-3 mt-1.5">
+                                                            <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 bg-slate-100 px-2 sm:px-3 py-1 rounded-full uppercase tracking-widest">
+                                                                Qty: {qty}
+                                                            </span>
+                                                            <span className="text-[10px] sm:text-xs font-bold text-blue-600">${item.selling_price} / unit</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-base sm:text-lg font-bold text-slate-900 tracking-tighter">${(Number(item.selling_price) * qty).toLocaleString()}</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-base sm:text-lg font-bold text-slate-900 tracking-tighter">${(Number(item.selling_price) * qty).toLocaleString()}</p>
-                                                </div>
-                                            </div>
-                                             );
+                                            );
                                         })}
                                     </div>
                                 )}
@@ -268,7 +268,7 @@ export default function OrderPage() {
                                 </div>
                                 <div>
                                     <FieldLabel>Primary Contact</FieldLabel>
-                                    <input className={inputClass} type="tel" placeholder="01XXXXXXXXX" value={phone} onChange={e => setPhone(e.target.value)} />
+                                    <input className={inputClass} type="tel" placeholder="XXXXXXXXXXX" value={phone} onChange={e => setPhone(e.target.value)} />
                                     <FieldError msg={errors.phone} />
                                 </div>
                             </div>

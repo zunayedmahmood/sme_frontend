@@ -47,6 +47,18 @@ export default function HomePage() {
     useEffect(() => {
         fetchCategories();
         fetchStats();
+
+        // Check for inquiries from localStorage
+        const inquiry = localStorage.getItem('contact_inquiry');
+        if (inquiry) {
+            try {
+                const { subject } = JSON.parse(inquiry);
+                setFormData(prev => ({ ...prev, subject }));
+                localStorage.removeItem('contact_inquiry');
+            } catch (e) {
+                console.error('Error parsing contact inquiry', e);
+            }
+        }
     }, []);
 
     const fetchStats = async () => {

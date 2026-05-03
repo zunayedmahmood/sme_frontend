@@ -211,9 +211,7 @@ function CategoryFeedContent() {
                                             alt={product.name}
                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
-                                        {product.available_stock <= 0 && (
-                                            <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">Out of Stock</div>
-                                        )}
+
                                     </Link>
 
                                     <div className="p-5 flex flex-col flex-grow">
@@ -223,10 +221,10 @@ function CategoryFeedContent() {
                                         <div className="flex items-center justify-between mb-4">
                                             <p className="text-xl font-bold text-blue-600">
                                                 {product.has_variations 
-                                                    ? 'Options Available' 
-                                                    : (product.selling_price !== null 
-                                                        ? `$${product.selling_price}` 
-                                                        : 'Price on Request')}
+                                                     ? 'Options Available' 
+                                                     : ((product.selling_price !== null && product.available_stock > 0)
+                                                         ? `$${product.selling_price}` 
+                                                         : 'Price on Request')}
                                             </p>
                                             <span className="text-[10px] font-bold text-slate-400">Sold: {product.sold_count}</span>
                                         </div>
@@ -239,7 +237,7 @@ function CategoryFeedContent() {
                                                 >
                                                     Select Configuration
                                                 </Link>
-                                            ) : product.selling_price === null ? (
+                                            ) : (product.selling_price === null || product.available_stock <= 0) ? (
                                                 <Link
                                                     href={`/product/${product.id}`}
                                                     className="w-full py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-lg font-bold text-xs flex items-center justify-center gap-2 hover:bg-slate-900 hover:text-white transition-all active:scale-95 shadow-sm"
